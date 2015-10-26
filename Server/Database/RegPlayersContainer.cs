@@ -11,7 +11,7 @@ public class RegPlayersContainer
 {	
 	[XmlArray("RegisteredPlayers"), XmlArrayItem("Player")]
 	public List<Player> Players;
-	//[XmlIgnore]
+	[XmlIgnore]
 	public string xml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>" +
 		"<ServerData xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">" +
 		"<RegisteredPlayers>" +

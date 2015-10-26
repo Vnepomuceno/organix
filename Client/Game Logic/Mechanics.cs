@@ -3,7 +3,6 @@ using UnityEngine;
 
 public static class Mechanics
 {
-	
 	public static void RepositionPrimitive(int PID, int PVID, int PrID, float x, float y)
 	{
 		Painter.ClientManager.networkView.RPC("RepositionPrimitive", RPCMode.Server, PID, PVID, PrID, x, y);

@@ -5,7 +5,6 @@ public class PaintServerPanels : MonoBehaviour
 {	
 	private GUISkin MySkin;
 	private int topLayerNumber = 1;
-
 	public static bool PlayerEscaped;
 	public static bool ShowVersionsPanel, ShowOptionsMenu, ShowLoadMenu, ShowExportMenu,
 		ShowConfiguration, ShowDuplicationWindow;

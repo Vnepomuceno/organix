@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 
 [XmlRoot("ProcessList")]
-public class GameManager {
-	
+public class GameManager
+{	
 	public enum GameScreen { Intro, Instructions, Login, Home,
 		ProcessCreation, ComposedCreation, AdHocCreation,
 		ProcessVersionCreate, VersionComposedCreation, VersionAdHocCreation,
@@ -26,13 +26,15 @@ public class GameManager {
 	public bool GameOn;
 	public string ToElicitProcessName = "";
 	
-	public GameManager() {
+	public GameManager()
+	{
 		GameState = new ClientState();
 		CurrentScreen = GameScreen.Intro;
 		Notifications = new NotificationSystem();
 	}
 	
-	public void LoadPlayerScore(string username) {
+	public void LoadPlayerScore(string username)
+	{
 		if (!CurrentPlayer.Username.Equals(username))
 			return;
 		
@@ -41,31 +43,40 @@ public class GameManager {
 			totNumVotesP = 0, totNumVotesV = 0, numVotesP = 0,
 			numVotesV = 0,numConvP = 0, numConvV = 0;
 		
-		foreach (Process process in GameState.LocalProcesses) {
-			if (process.published && process.Author.Equals(username)) {
+		foreach (Process process in GameState.LocalProcesses)
+		{
+			if (process.published && process.Author.Equals(username))
+			{
 				scoreP += process.score;
 				NumDraftProcesses++;
 				numActivP += process.CalculateNumberActivities();
 				numDupP += (process.markedDuplication) ? 1 : 0;
 			}
 			
-			if (process.published) {
-				foreach (Vote qualVote in process.QualityVotes) {
+			if (process.published)
+			{
+				foreach (Vote qualVote in process.QualityVotes)
+				{
 					totNumVotesP++;
-					if (qualVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username)) {
+					if (qualVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username))
+					{
 						numVotesP++;
-						if (qualVote.GetVote() && process.posVotes > process.negVotes) {
+						if (qualVote.GetVote() && process.posVotes > process.negVotes)
+						{
 							numConvP++;
 							scoreP += 10;
 						}
 					}
 				}
 				
-				foreach (Vote dupVote in process.DuplicationVotes) {
+				foreach (Vote dupVote in process.DuplicationVotes)
+				{
 					totNumVotesP++;
-					if (dupVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username)) {
+					if (dupVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username))
+					{
 						numVotesP++;
-						if (dupVote.GetVote() && process.posDuplicationVotes > process.negDuplicationVotes) {
+						if (dupVote.GetVote() && process.posDuplicationVotes > process.negDuplicationVotes)
+						{
 							numConvP++;
 							scoreP += 20;
 						}
@@ -73,31 +84,40 @@ public class GameManager {
 				}
 			}
 			
-			foreach (ProcessVersion version in process.Versions) {
-				if (version.published && version.Author.Equals(username)) {
+			foreach (ProcessVersion version in process.Versions)
+			{
+				if (version.published && version.Author.Equals(username))
+				{
 					scoreV += version.score;
 					nrVersions++;
 					numActivV += version.CalculateNumberActivities();
 					numDupV += (version.markedDuplication) ? 1 : 0;
 				}
 				
-				if (version.published) {
-					foreach (Vote qualVote in version.QualityVotes) {
+				if (version.published)
+				{
+					foreach (Vote qualVote in version.QualityVotes)
+					{
 						totNumVotesV++;
-						if (qualVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username)) {
+						if (qualVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username))
+						{
 							numVotesV++;
-							if (qualVote.GetVote() && version.posVotes > version.negVotes) {
+							if (qualVote.GetVote() && version.posVotes > version.negVotes)
+							{
 								numConvV++;
 								scoreV += 10;
 							}
 						}
 					}
 					
-					foreach (Vote dupVote in version.DuplicationVotes) {
+					foreach (Vote dupVote in version.DuplicationVotes)
+					{
 						totNumVotesV++;
-						if (dupVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username)) {
+						if (dupVote.GetVoter().Equals(Painter.Manager.CurrentPlayer.Username))
+						{
 							numVotesV++;
-							if (dupVote.GetVote() && process.posDuplicationVotes > process.negDuplicationVotes) {
+							if (dupVote.GetVote() && process.posDuplicationVotes > process.negDuplicationVotes)
+							{
 								numConvV++;
 								scoreV += 10;
 							}

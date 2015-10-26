@@ -6,7 +6,6 @@ using System.Xml.Serialization;
 public class Lane : Primitive
 {	
 	public enum Categ { Default, Parameterized };
-	
 	[XmlAttribute("Category")]
 	public Categ categ;
 	[XmlAttribute("Participant")]
@@ -14,8 +13,7 @@ public class Lane : Primitive
 	[XmlArray("LaneElements"), XmlArrayItem("Primitive")]
 	public List<Primitive> Elements;
 
-	// SERVER
-	
+	#region SERVER
 	public Lane()
 	{
 		categ = Categ.Default;
@@ -28,9 +26,9 @@ public class Lane : Primitive
 		Participant = participant;
 		Elements = new List<Primitive>();
 	}
-	
-	// CLIENT
-	
+	#endregion
+
+	#region CLIENT
 	public Lane(int PrID) : base(PrID, 0, 0)
 	{
 		categ = Categ.Default;
@@ -43,5 +41,6 @@ public class Lane : Primitive
 		Participant = participant;
 		Elements = new List<Primitive>();
 	}
-	
+	#endregion
+
 }

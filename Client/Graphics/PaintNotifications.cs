@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class PaintNotifications : MonoBehaviour
 {
-	
 	private GUISkin MySkin;
 	private int topLayerNumber = 1;
 		

@@ -15,7 +15,8 @@ public class ServerState
 	public RegPlayersContainer RegisteredPlayers;
 	public bool GameOver = false;
 
-	public ServerState() {
+	public ServerState()
+	{
 		LocalProcesses = new List<Process>();
 		ActivePlayers = new List<Player>();
 		RegisteredPlayers = new RegPlayersContainer();
@@ -490,19 +491,18 @@ public class ServerState
 	{
 		if (process.Author.Equals(author.Username))
 		{
-			// Expected number of activities (Poisson Distribution)	
+			#region Expected number of activities (Poisson Distribution)	
 			float poissonFactor = (float)(process.score *
 				CalculateModPoissonValue(process.CalculateNumberActivities(),
 					int.Parse(PaintServerPanels.ExpectedNumActivities)));
-			
 			author.bonusMalus[0] += poissonFactor;
 			process.bonusMalus[0] = poissonFactor;
-			
-			// Quality voting
+			#endregion
+
+			#region Quality voting
 			float votingFactor = 0;
 			
-			if (process.QualityVotes.Count == 0)
-				votingFactor = 0;
+			if (process.QualityVotes.Count == 0) votingFactor = 0;
 			else if (process.posVotes > process.negVotes)
 				votingFactor = process.score*(((float)process.posVotes/process.QualityVotes.Count)/4);
 			else
@@ -510,8 +510,9 @@ public class ServerState
 			
 			author.bonusMalus[0] += votingFactor;
 			process.bonusMalus[1] = votingFactor;
-			
-			// Process marked as a duplicate
+			#endregion
+
+			#region Process marked as a duplicate
 			float duplicationFactor = 0;
 			
 			if (process.markedDuplication && (process.posDuplicationVotes > process.negDuplicationVotes))
@@ -521,8 +522,9 @@ public class ServerState
 			
 			author.bonusMalus[0] += duplicationFactor;
 			process.bonusMalus[2] = duplicationFactor;
-			
-			// Best Percentage of Positive Votes (PPV) in process tree
+			#endregion
+
+			#region Best Percentage of Positive Votes (PPV) in process tree
 			int PVID = 0;
 			float bestPPV = 0f;
 			float bestVoteRateFactor = 0;
@@ -534,13 +536,12 @@ public class ServerState
 					PVID = version.PVID;
 				}
 			
-			if (PVID == 0)
-				bestVoteRateFactor = process.score*0.1f;
-			else
-				bestVoteRateFactor = - process.score*0.05f;
+			if (PVID == 0) bestVoteRateFactor = process.score*0.1f;
+			else bestVoteRateFactor = - process.score*0.05f;
 			
 			author.bonusMalus[0] += bestVoteRateFactor;
 			process.bonusMalus[3] = bestVoteRateFactor;
+			#endregion
 		}
 	}
 	
@@ -548,15 +549,16 @@ public class ServerState
 	{
 		if (version.Author.Equals(author.Username))
 		{
-		// Expected number of activities (Poisson Distribution)
+			#region Expected number of activities (Poisson Distribution)
 			float poissonFactor = (float)(version.score *
 				CalculateModPoissonValue(version.CalculateNumberActivities(),
 					int.Parse(PaintServerPanels.ExpectedNumActivities)));
 			
 			author.bonusMalus[0] += poissonFactor;
 			version.bonusMalus[0] = poissonFactor;
-			
-			// Quality voting
+			#endregion
+
+			#region Quality voting
 			float votingFactor = 0;
 			
 			if (version.QualityVotes.Count == 0)
@@ -568,8 +570,9 @@ public class ServerState
 			
 			author.bonusMalus[0] += votingFactor;
 			version.bonusMalus[1] = votingFactor;
-			
-			// Process marked as a duplicate
+			#endregion
+
+			#region Process marked as a duplicate
 			float duplicationFactor = 0;
 			if (version.markedDuplication && (version.posDuplicationVotes > version.negDuplicationVotes))
 				duplicationFactor = - version.score*0.5f;
@@ -578,6 +581,7 @@ public class ServerState
 			
 			author.bonusMalus[0] += duplicationFactor;
 			version.bonusMalus[2] = duplicationFactor;
+			#endregion
 		}
 	}
 	

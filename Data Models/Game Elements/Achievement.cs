@@ -5,7 +5,6 @@ public class Achievement
 {	
 	public enum Categ { Default, ProcessPublished, ProposedVersion,
 		VotedProcessPlayers, CorrectedOwnProcess };
-	
 	public Categ categ { get; private set; }
 	public string Name { get; private set; }
 	public int ScorePoints { get; private set; }

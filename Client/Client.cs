@@ -13,35 +13,35 @@ public class Client : MonoBehaviour
 	
 	private string[] IOExceptions =
 	{
-		"Cannot create new process.", 													// 0
-		"Cannot add lane. Process not found.", 											// 1
-		"Cannot edit lane. Proocess not found.", 										// 2
-		"Cannot add event. Process not found.", 										// 3
-		"Cannot add activity. Process not found.", 										// 4
-		"Cannot add composed activity. Process not found.", 							// 5
-		"Cannot add ad-hoc activity. Process not found.", 								// 6
-		"Cannot add work activity to ad-hoc activity. Ad-hoc activity not found.", 		// 7
-		"Cannot add work activity to composed activity. Composed activity not found.", 	// 8
-		"Cannot add event to composed activity. Composed activity not found.", 			// 9
-		"Cannot add flow between subprimitives. Subprimitives not found.", 				// 10
-		"Cannot add flow between primitives. Primitives not found.", 					// 11
-		"Cannot edit process. Process not found.", 										// 12
-		"Cannot edit flow between primitives. Primitives not found.", 					// 13
-		"Cannot edit sub flow from composed activity.", 								// 14
-		"Cannot edit activity. Activity not found.", 									// 15
-		"Cannot edit sub activity. Sub activity not found.", 							// 16
-		"Cannot remove primitive. Primitive not found.", 								// 17
-		"Cannot remove sub primitive. Sub primitive not found.", 						// 18
-		"Cannot remove flow. Flow not found.", 											// 19
-		"Cannot remove sub flow. Sub flow not found.", 									// 20
-		"Cannot remove lane. Lane not found", 											// 21
-		"Cannot remove process. Process not found",										// 22
-		"Cannot change lane of primitive.", 											// 23
-		"Cannot vote for process.", 													// 24
-		"Cannot mark process as duplicated.", 											// 25
-		"Cannot vote for process regarding duplication.",								// 26
-		"Cannot publish process.",														// 27
-		"Action could not be performed."												// 28
+		/*  0 */ "Cannot create new process.",
+		/*  1 */ "Cannot add lane. Process not found.",
+		/*  2 */ "Cannot edit lane. Proocess not found.",
+		/*  3 */ "Cannot add event. Process not found.",
+		/*  4 */ "Cannot add activity. Process not found.",
+		/*  5 */ "Cannot add composed activity. Process not found.",
+		/*  6 */ "Cannot add ad-hoc activity. Process not found.",
+		/*  7 */ "Cannot add work activity to ad-hoc activity. Ad-hoc activity not found.",
+		/*  8 */ "Cannot add work activity to composed activity. Composed activity not found.",
+		/*  9 */ "Cannot add event to composed activity. Composed activity not found.",
+		/* 10 */ "Cannot add flow between subprimitives. Subprimitives not found.",
+		/* 11 */ "Cannot add flow between primitives. Primitives not found.",
+		/* 12 */ "Cannot edit process. Process not found.",
+		/* 13 */ "Cannot edit flow between primitives. Primitives not found.",
+		/* 14 */ "Cannot edit sub flow from composed activity.",
+		/* 15 */ "Cannot edit activity. Activity not found.",
+		/* 16 */ "Cannot edit sub activity. Sub activity not found.",
+		/* 17 */ "Cannot remove primitive. Primitive not found.",
+		/* 18 */ "Cannot remove sub primitive. Sub primitive not found.",
+		/* 19 */ "Cannot remove flow. Flow not found.",
+		/* 20 */ "Cannot remove sub flow. Sub flow not found.",
+		/* 21 */ "Cannot remove lane. Lane not found",
+		/* 22 */ "Cannot remove process. Process not found",
+		/* 23 */ "Cannot change lane of primitive.",
+		/* 24 */ "Cannot vote for process.",
+		/* 25 */ "Cannot mark process as duplicated.",
+		/* 26 */ "Cannot vote for process regarding duplication.",
+		/* 27 */ "Cannot publish process.",
+		/* 28 */ "Action could not be performed."
 	};
 	
 	public void Start()
@@ -92,11 +92,9 @@ public class Client : MonoBehaviour
 			return false;
 	}
 	
-	/********************/
-	/*    RPC SENDER    */
-	/********************/
+	#region RPC SENDER
 	
-	// Language Constructor
+	#region Language Constructor
 	[RPC] public void Login(string username, string password) {}
 	[RPC] public void LogoutAck(string username) {}
 	[RPC] public void NewProcess(string author, string name, string description) {}
@@ -126,26 +124,28 @@ public class Client : MonoBehaviour
 	[RPC] public void ChangeLane(int PID, int PVID, int PrID, int LaneID) {}
 	[RPC] public void RepositionPrimitive(int PID, int PVID, int PrID, float x, float y) {}
 	[RPC] public void RepositionSubPrimitive(int PID, int PVID, int ActPrID, int PrID, float x, float y) {}
-	
-	// Game Mechanics
+	#endregion
+
+	#region Game Mechanics
 	[RPC] public void VoteQualityProcess(int PID, bool vote, string username) {}
 	[RPC] public void VoteQualityVersion(string username, int PID, int PVID, bool vote) {}
 	[RPC] public void MarkAsDuplicated(int PID, int PVID, int originalPID, int originalPVID, string username) {}
 	[RPC] public void VoteDuplicationProcess(int PID, int PVID, bool vote, string username) {}
 	[RPC] public void PublishProcess(string username, int PID, int PVID) {}
 	[RPC] public void SignalGameTimeout(string username) {}
-	
-	// Data Consistency
+	#endregion
+
+	#region Data Consistency
 	[RPC] public void LoadLocalProcesses(string player) {}
 	[RPC] public void LoadFromXml(string player, int passNumber, int numberPasses, string XmlFraction) {}
+	#endregion
+
+	#endregion
+
+
+	#region RPC RECEIVER
 	
-	
-	/********************/
-	/*   RPC RECEIVER   */
-	/********************/
-	
-	// Language Constructor
-	
+	#region Language Constructor
 	[RPC]
 	public void LoginAck(string status, string username, float gameLength, string processName)
 	{
@@ -660,7 +660,6 @@ public class Client : MonoBehaviour
 	}
 	
 	[RPC]
-	
 	public void RemoveSubPrimitiveAck(string status, int PID, int PVID, int LaneID, int ActPrID, int SPrID)
 	{
 		try
@@ -893,7 +892,9 @@ public class Client : MonoBehaviour
 			Debug.Log(ioe.StackTrace);
 		}
 	}
-	
+	#endregion
+
+	#region Data Consistency
 	[RPC]
 	public void LoadLocalProcessesAck(string player)
 	{
@@ -901,20 +902,9 @@ public class Client : MonoBehaviour
 			Painter.Manager.CurrentPlayer.Username.Equals(player))
 			Painter.UpdateMode = false;
 	}
-	
-	[RPC]
-	public void UpdateMode(bool update) { Painter.UpdateMode = update; }
-	
-	[RPC]
-	public void ResetStateAck()
-	{
-		Painter.Manager.GameState.Reset();
-		Painter.Manager.CurrentPlayer.Reset();
-		Painter.Manager.CurrentScreen = GameManager.GameScreen.Home;
-	}
-	
-	// Mechanics
-	
+	#endregion
+
+	#region Mechanics
 	[RPC]
 	public void VoteQualityProcessAck(string status, int PID, bool vote, string username)
 	{
@@ -1078,4 +1068,18 @@ public class Client : MonoBehaviour
 		Process fcProcess = Painter.Manager.GameState.GetTargetProcess(PID, PVID);
 		fcProcess.finalConsensus = true;
 	}
+	#endregion
+
+	[RPC]
+	public void UpdateMode(bool update) { Painter.UpdateMode = update; }
+
+	[RPC]
+	public void ResetStateAck()
+	{
+		Painter.Manager.GameState.Reset();
+		Painter.Manager.CurrentPlayer.Reset();
+		Painter.Manager.CurrentScreen = GameManager.GameScreen.Home;
+	}
+
+	#endregion
 }

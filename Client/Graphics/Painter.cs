@@ -5,7 +5,6 @@ using System.Collections.Generic;
 
 public class Painter : MonoBehaviour
 {
-	
 	public static int SCREEN_WIDTH = 1280;
 	public static int SCREEN_HEIGHT = 700;
 	int bottomLayerNumber = 10;
@@ -275,7 +274,7 @@ public class Painter : MonoBehaviour
 		for (int i = 0; i < SCREEN_WIDTH; i += 245)
 			GUI.DrawTexture(new Rect(i, 0, 245, 43), toolbarBackground);
 		
-		// Manage primitive
+		#region Manage primitive
 		if (GUI.Button(new Rect(0, 0, 43, 37), "", "BackButton"))
 		{
 			if (Manager.CurrentScreen == GameManager.GameScreen.AdHocCreation ||
@@ -303,6 +302,7 @@ public class Painter : MonoBehaviour
 				flowMode = false;
 			}
 		}
+		#endregion
 		
 		if (Manager.GameOn && flowMode)
 		{
@@ -318,7 +318,7 @@ public class Painter : MonoBehaviour
 			Manager.CurrentScreen == GameManager.GameScreen.ProcessCreation) && GUI.Button(new Rect(42, 0, 51, 37), "", "RemoveButton"))
 			removeWindow = true;
 		
-		// Voting processes
+		#region Voting processes
 		Process process;
 		if ((Manager.CurrentScreen == GameManager.GameScreen.ViewProcess ||
 			Manager.CurrentScreen == GameManager.GameScreen.ProcessCreation) &&
@@ -332,7 +332,7 @@ public class Painter : MonoBehaviour
 			Manager.CurrentScreen == GameManager.GameScreen.ProcessVersionCreate) &&
 			process != null && process.published && !EnableProcessEdition)
 		{			
-			// Voting for quality
+			#region Voting for quality
 			if (Manager.CurrentScreen == GameManager.GameScreen.ViewProcess &&
 				(Manager.CurrentProcess.PlayerAlreadyVoted(username, "Quality") ||
 				Manager.CurrentProcess.Author.Equals(Manager.CurrentPlayer.Username)))
@@ -364,8 +364,9 @@ public class Painter : MonoBehaviour
 						Mechanics.VoteQualityVersion(username, Manager.CurrentProcess.PID, Manager.CurrentVersion.PVID, false);
 				}
 			}
+			#endregion
 			
-			// Voting for duplication
+			#region Voting for duplication
 			if (Manager.GameOn && !process.markedDuplication)
 			{
 				if (GUI.Button(new Rect(Screen.width-185, 0, 78, 37), "", "MarkDuplicateButton"))
@@ -384,7 +385,9 @@ public class Painter : MonoBehaviour
 				GUI.Label(new Rect(Screen.width-173, 5, 30, 20), "" + process.posDuplicationVotes, "VoteText");
 				GUI.Label(new Rect(Screen.width-133, 5, 30, 20), "" + process.negDuplicationVotes, "VoteText");
 			}
+			#endregion
 		}
+		#endregion
 		
 		if (Manager.GameOn && Manager.CurrentProcess != null && !Manager.CurrentProcess.published &&
 		    Manager.CurrentScreen == GameManager.GameScreen.ProcessCreation)
@@ -406,7 +409,7 @@ public class Painter : MonoBehaviour
 			}
 		}
 		
-		// + LANE
+		#region + LANE
 		if (Manager.GameOn && EnableProcessEdition && (Manager.CurrentScreen == GameManager.GameScreen.ProcessCreation ||
 			Manager.CurrentScreen == GameManager.GameScreen.ProcessVersionCreate))
 		{
@@ -419,8 +422,9 @@ public class Painter : MonoBehaviour
 					participant);
 			}
 		}
+		#endregion
 		
-		// + EVENT
+		#region + EVENT
 		Rect eventButtonRect;
 		if (Manager.GameOn && EnableProcessEdition && Manager.CurrentScreen != GameManager.GameScreen.AdHocCreation &&
 			Manager.CurrentScreen != GameManager.GameScreen.VersionAdHocCreation)
@@ -454,10 +458,11 @@ public class Painter : MonoBehaviour
 				}
 			}
 		}
+		#endregion
 		
-		// + ACTIVITY
+		#region + ACTIVITY
 		Rect activityButtonRect;
-		// Screen: Process Creation
+		#region Screen: Process Creation
 		if (Manager.GameOn && EnableProcessEdition && (Manager.CurrentScreen == GameManager.GameScreen.ProcessCreation ||
 			Manager.CurrentScreen == GameManager.GameScreen.ProcessVersionCreate))
 		{
@@ -494,7 +499,8 @@ public class Painter : MonoBehaviour
 				}
 			}
 		}
-		// Screen: Composed Activity Creation
+		#endregion
+		#region Screen: Composed Activity Creation
 		else if (Manager.GameOn && EnableProcessEdition && (Manager.CurrentScreen == GameManager.GameScreen.ComposedCreation ||
 			Manager.CurrentScreen == GameManager.GameScreen.VersionComposedCreation))
 		{
@@ -507,7 +513,8 @@ public class Painter : MonoBehaviour
 					Manager.CurrentLane.PrID, Manager.InspectorPrimitive.PrID, "");
 			}
 		}
-		// Screen: Ad-Hoc Activity Creation
+		#endregion
+		#region Screen: Ad-Hoc Activity Creation
 		else if (Manager.GameOn && EnableProcessEdition && (Manager.CurrentScreen == GameManager.GameScreen.AdHocCreation ||
 			Manager.CurrentScreen == GameManager.GameScreen.VersionAdHocCreation))
 		{
@@ -520,9 +527,11 @@ public class Painter : MonoBehaviour
 					Manager.CurrentLane.PrID, Manager.InspectorPrimitive.PrID);
 			}
 		}
+		#endregion
+
+		#endregion
 		
-		
-		// + FLOW
+		#region + FLOW
 		Rect flowButtonRect;
 		if (Manager.GameOn && EnableProcessEdition && Manager.CurrentScreen != GameManager.GameScreen.AdHocCreation &&
 			Manager.CurrentScreen != GameManager.GameScreen.VersionAdHocCreation)
@@ -580,6 +589,7 @@ public class Painter : MonoBehaviour
 				determinedFlow = false;
 			}
 		}
+		#endregion
 	}
 
 	private void ResetToolbarView()
@@ -798,7 +808,7 @@ public class Painter : MonoBehaviour
 		int laneHeight = 180;
 		Rect nextPoolRect = new Rect(0, 0, SCREEN_WIDTH-60, laneHeight);
 		
-		// DRAWS LANES
+		#region DRAWS LANES
 		Matrix4x4 backupMatrix = GUI.matrix;
 		if (process != null)
 		{
@@ -871,8 +881,9 @@ public class Painter : MonoBehaviour
 					GUI.Label(poolLabelRect, "P" + process.PID + ": " + process.Name, "PoolLabelText");
 				GUI.matrix = backupMatrix;
 			}
+			#endregion
 			
-			// DRAWS EDGE FLOWS
+			#region DRAWS EDGE FLOWS
 			foreach(Flow flow in process.Connections)
 			{
 				Primitive source, target;
@@ -899,8 +910,9 @@ public class Painter : MonoBehaviour
 				else
 					DrawLine(flow, Color.black, 3, false, false, -1, -1);
 			}
+			#endregion
 			
-			// DRAWS LANGUAGE PRIMITIVES
+			#region DRAWS LANGUAGE PRIMITIVES
 			foreach (Lane lane in process.Pool)
 			{
 				foreach (Primitive prim in lane.Elements)
@@ -913,7 +925,7 @@ public class Painter : MonoBehaviour
 					else
 						primitiveRect = new Rect(prim.x-20, prim.x-20, 40, 40);
 					
-					// Drop
+					#region Drop
 					if (prim.dragging && Input.GetMouseButtonUp(1) && EnableProcessEdition)
 					{
 						prim.dragging = false;
@@ -950,14 +962,16 @@ public class Painter : MonoBehaviour
 								Mechanics.RepositionPrimitive((process as ProcessVersion).OriginalPID, (process as ProcessVersion).PVID, prim.PrID, prim.x, prim.y);
 						}
 					}
-					// Drag
+					#endregion
+					#region Drag
 					else if (primitiveRect.Contains(UnityEngine.Event.current.mousePosition) &&
 						Input.GetMouseButtonDown(1) && !flowMode && EnableProcessEdition)
 					{
 						oldPrimitivePos = new Vector2(prim.x, prim.y);
 						prim.dragging = true;
 					}
-					// Moving position
+					#endregion
+					#region Moving position
 					if (prim.dragging && EnableProcessEdition)
 					{
 						Vector3 dropPosition = Input.mousePosition;
@@ -965,11 +979,12 @@ public class Painter : MonoBehaviour
 						prim.x = dropPosition.x-15;
 						prim.y = Screen.height-dropPosition.y-80;
 					}
+					#endregion
 					
-					// EVENT
+					#region EVENT
 					if (prim is Event)
 					{
-						// Start Event
+						#region Start Event
 						if (((Event)prim).categ.Equals(Event.Categ.Start))
 						{
 							Event e = (Event)prim;
@@ -1001,7 +1016,8 @@ public class Painter : MonoBehaviour
 								}
 							}
 						}
-						// End Event
+						#endregion
+						#region End Event
 						else if (((Event)prim).categ.Equals(Event.Categ.End))
 						{
 							Event e = (Event)prim;
@@ -1032,7 +1048,8 @@ public class Painter : MonoBehaviour
 								}
 							}
 						}
-						// Merge Event
+						#endregion
+						#region Merge Event
 						else if (((Event)prim).categ.Equals(Event.Categ.Merge))
 						{
 							Event e = (Event)prim;
@@ -1063,6 +1080,7 @@ public class Painter : MonoBehaviour
 								}
 							}
 						}
+						#endregion
 						
 						if (UnityEngine.Event.current.type == EventType.KeyUp &&
 							UnityEngine.Event.current.keyCode == KeyCode.Delete &&
@@ -1081,8 +1099,9 @@ public class Painter : MonoBehaviour
 									prim.PrID);
 						}
 					}
-					// ACTIVITY
-					// Composed Activity
+					#endregion
+					#region ACTIVITY
+					#region Composed Activity
 					else if (prim is ComposedActivity)
 					{
 						ComposedActivity a = prim as ComposedActivity;
@@ -1095,7 +1114,7 @@ public class Painter : MonoBehaviour
 						else
 							compActStyle = "ComposedActivity";
 						
-						// Open composed activity
+						#region Open composed activity
 						if (Input.GetKeyUp(KeyCode.Space) &&
 							prim.PrID == Manager.InspectorPrimitive.PrID)
 						{
@@ -1108,8 +1127,8 @@ public class Painter : MonoBehaviour
 								Manager.CurrentScreen = GameManager.GameScreen.VersionComposedCreation;
 							ResetToolbarView();
 						}
-						
-						// Select composed activity
+						#endregion
+						#region Select composed activity
 						else if (GUI.Button(primitiveRect, a.Name, compActStyle))
 						{
 							PaintEditName.changeName = false;
@@ -1129,8 +1148,8 @@ public class Painter : MonoBehaviour
 								determinedSource = false;
 							}
 						}
-						
-						// Change composed activity name
+						#endregion
+						#region Change composed activity name
 						if (primitiveRect.Contains(UnityEngine.Event.current.mousePosition) &&
 							(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) &&
 							Input.GetMouseButtonUp(0) && EnableProcessEdition)
@@ -1140,8 +1159,8 @@ public class Painter : MonoBehaviour
 							PaintEditName.changeName = true;
 							PaintEditName.primitiveRect = primitiveRect;
 						}
-						
-						// Delete composed activity
+						#endregion
+						#region Delete composed activity
 						if (prim.PrID == Manager.InspectorPrimitive.PrID &&
 							UnityEngine.Event.current.type == EventType.KeyUp &&
 							UnityEngine.Event.current.keyCode == KeyCode.Delete && EnableProcessEdition)
@@ -1151,8 +1170,10 @@ public class Painter : MonoBehaviour
 								Manager.CurrentLane.PrID,
 								a.PrID);
 						}
+						#endregion
 					}
-					// Ad-Hoc Activity
+					#endregion
+					#region Ad-Hoc Activity
 					else if (prim is AdHocActivity)
 					{
 						AdHocActivity a = prim as AdHocActivity;
@@ -1165,7 +1186,7 @@ public class Painter : MonoBehaviour
 						else
 							adHocActStyle = "AdHocActivity";
 						
-						// Open ad-hoc activity
+						#region Open ad-hoc activity
 						if (Input.GetKeyUp(KeyCode.Space) &&
 							prim.PrID == Manager.InspectorPrimitive.PrID)
 						{
@@ -1178,8 +1199,8 @@ public class Painter : MonoBehaviour
 								Manager.CurrentScreen = GameManager.GameScreen.VersionAdHocCreation;
 							ResetToolbarView();
 						}
-						
-						// Select ad-hoc activity
+						#endregion
+						#region Select ad-hoc activity
 						else if (GUI.Button(primitiveRect, a.Name, adHocActStyle))
 						{
 							PaintEditName.changeName = false;
@@ -1199,8 +1220,8 @@ public class Painter : MonoBehaviour
 								determinedSource = false;
 							}
 						}
-						
-						// Change ad-hoc activity name
+						#endregion
+						#region Change ad-hoc activity name
 						if (primitiveRect.Contains(UnityEngine.Event.current.mousePosition) &&
 							(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) &&
 							Input.GetMouseButtonUp(0) && EnableProcessEdition)
@@ -1210,8 +1231,8 @@ public class Painter : MonoBehaviour
 							PaintEditName.changeName = true;
 							PaintEditName.primitiveRect = primitiveRect;
 						}
-						
-						// Delete ad-hoc activity
+						#endregion
+						#region Delete ad-hoc activity
 						if (prim.PrID == Manager.InspectorPrimitive.PrID &&
 							UnityEngine.Event.current.type == EventType.KeyUp &&
 							UnityEngine.Event.current.keyCode == KeyCode.Delete && EnableProcessEdition)
@@ -1221,8 +1242,10 @@ public class Painter : MonoBehaviour
 								Manager.CurrentLane.PrID,
 								a.PrID);
 						}
+						#endregion
 					}
-					// Work Activity
+					#endregion
+					#region Work Activity
 					else if (prim is Activity)
 					{
 						Activity a = prim as Activity;
@@ -1235,7 +1258,7 @@ public class Painter : MonoBehaviour
 						else
 							actStyle = "Activity";
 						
-						// Select activity
+						#region Select activity
 						if (GUI.Button(primitiveRect, a.Name, actStyle))
 						{
 							PaintEditName.changeName = false;
@@ -1256,8 +1279,8 @@ public class Painter : MonoBehaviour
 								determinedSource = false;
 							}
 						}
-						
-						// Change activity name
+						#endregion
+						#region Change activity name
 						if (primitiveRect.Contains(UnityEngine.Event.current.mousePosition) &&
 							(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) &&
 							Input.GetMouseButtonUp(0) && EnableProcessEdition)
@@ -1267,8 +1290,8 @@ public class Painter : MonoBehaviour
 							PaintEditName.changeName = true;
 							PaintEditName.primitiveRect = primitiveRect;
 						}
-						
-						// Delete activity
+						#endregion
+						#region Delete activity
 						if (prim.PrID == Manager.InspectorPrimitive.PrID &&
 							UnityEngine.Event.current.type == EventType.KeyUp &&
 							UnityEngine.Event.current.keyCode == KeyCode.Delete && EnableProcessEdition)
@@ -1278,15 +1301,19 @@ public class Painter : MonoBehaviour
 								Manager.CurrentLane.PrID,
 								a.PrID);
 						}
+						#endregion
 					}
+					#endregion
 				}
+				#endregion
 			}
+			#endregion
 		}
 	}
 	
 	public void DrawComposedSubActivities(ComposedActivity activity)
 	{
-		// DRAWS LANE
+		#region DRAWS LANE
 		Matrix4x4 backupMatrix = GUI.matrix;
 		Rect poolRect = new Rect(0, 15, Screen.width-40, 300);
 		GUI.Box(poolRect, "", "Lane");
@@ -1294,8 +1321,8 @@ public class Painter : MonoBehaviour
 		GUIUtility.RotateAroundPivot(270f, new Vector2(0, 300+15));
 		GUI.Button(new Rect(0, 300+15, 300, 30), "Activity " + activity.PrID + ": " + activity.Name, "PoolLabel");			
 		GUI.matrix = backupMatrix;
-		
-		// DRAWS EDGE FLOWS
+		#endregion
+		#region DRAWS EDGE FLOWS
 		foreach (Flow flow in activity.Connections)
 		{
 			Primitive source = Manager.GameState.GetSubPrimitive(Manager.CurrentProcess.PID,
@@ -1322,13 +1349,13 @@ public class Painter : MonoBehaviour
 			else
 				DrawLine(flow, Color.black, 3, false, false, activity.PrID, activity.PrID);
 		}
-		
-		// DRAWS LANGUAGE PRIMITIVES
+		#endregion
+		#region DRAWS LANGUAGE PRIMITIVES
 		foreach (Primitive prim in activity.lane.Elements)
 		{
 			Rect primitiveRect = new Rect(prim.x-75, prim.y-25, 150, 50);
 			
-			// Drop
+			#region Drop
 			if (prim.dragging && Input.GetMouseButtonUp(1) && EnableProcessEdition)
 			{
 				prim.dragging = false;
@@ -1343,21 +1370,24 @@ public class Painter : MonoBehaviour
 						Manager.CurrentScreen == GameManager.GameScreen.ComposedCreation ? -1 : Manager.CurrentVersion.PVID,
 						activity.PrID, prim.PrID, prim.x, prim.y);
 			}
-			// Drag
+			#endregion
+			#region Drag
 			else if (primitiveRect.Contains(UnityEngine.Event.current.mousePosition) &&
 				Input.GetMouseButtonDown(1) && !flowMode && EnableProcessEdition)
 			{
 				oldPrimitivePos = new Vector2(prim.x, prim.y);
 				prim.dragging = true;
 			}
-			// Moving position
+			#endregion
+			#region Moving position
 			if (prim.dragging && EnableProcessEdition)
 			{
 				Vector3 dropPosition = Input.mousePosition;
 				prim.x = dropPosition.x-15;
 				prim.y = Screen.height-dropPosition.y-80;
 			}
-			
+			#endregion
+
 			string primStyle = "";
 			
 			if (prim is Activity)
@@ -1482,6 +1512,7 @@ public class Painter : MonoBehaviour
 				}
 			}
 		}
+		#endregion
 	}
 	
 	public void DrawAdHocSubActivities(AdHocActivity activity)
@@ -1711,25 +1742,26 @@ public class Painter : MonoBehaviour
 				condition = GUI.TextField(new Rect(loopRect.x+25, loopRect.y-25, 90, 25), condition);
 		}
 		
-		// Delete flow
+		#region Delete flow
 		if (APrID == -1 && Manager.InspectorPrimitive != null && flow.PrID == Manager.InspectorPrimitive.PrID &&
 			UnityEngine.Event.current.type == EventType.KeyUp &&
 			UnityEngine.Event.current.keyCode == KeyCode.Delete && EnableProcessEdition)
-			
+		{
 			LanguageConstructor.RemoveFlow(Manager.CurrentProcess.PID,
 				Manager.CurrentScreen == GameManager.GameScreen.ProcessCreation ? -1 : Manager.CurrentVersion.PVID,
 				flow.PrID);
-		
+		}
 		else if (Manager.InspectorSubPrimitive != null && flow.PrID == Manager.InspectorSubPrimitive.PrID &&
 			UnityEngine.Event.current.type == EventType.KeyUp &&
 			UnityEngine.Event.current.keyCode == KeyCode.Delete && EnableProcessEdition)
-			
+		{	
 			LanguageConstructor.RemoveSubFlow(Manager.CurrentProcess.PID,
 				(Manager.CurrentScreen == GameManager.GameScreen.AdHocCreation ||
 				Manager.CurrentScreen == GameManager.GameScreen.ComposedCreation) ? -1 : Manager.CurrentVersion.PVID,
 				Manager.CurrentLane.PrID,
 				PrID, flow.PrID);
-		
+		}
+		#endregion
 		
 		GUI.matrix = matrixBackup;
     }

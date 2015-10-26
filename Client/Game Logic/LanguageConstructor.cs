@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public static class LanguageConstructor
 {
-	
 	public static void PlayerInTheGame()
 	{
 		if (!Painter.Manager.GameOn)
@@ -115,7 +114,6 @@ public static class LanguageConstructor
 				process = Painter.Manager.GameState.GetProcessVersion(PID, PVID);
 			
 			Primitive source = Painter.Manager.GameState.GetPrimitive(PID, PVID, sourcePrID);
-			//Primitive target = Painter.Manager.GameState.GetPrimitive(PID, targetPrID);
 			
 			foreach (Flow flow in process.Connections) {
 				if (flow.SourceID == sourcePrID && flow.TargetID == targetPrID)

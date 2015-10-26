@@ -9,9 +9,8 @@ public class ComposedActivity : Activity
 	public List<Flow> Connections;
 	[XmlIgnore]
 	public bool cached;
-	
-	// SERVER
-	
+
+	#region SERVER
 	public ComposedActivity()
 	{
 		lane = new Lane();
@@ -29,6 +28,7 @@ public class ComposedActivity : Activity
 		lane = new Lane();
 		Connections = new List<Flow>();
 	}
+	#endregion
 
 }
 

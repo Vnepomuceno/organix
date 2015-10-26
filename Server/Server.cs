@@ -184,7 +184,7 @@ public class Server : MonoBehaviour
 		List<Process> orderedProcesses = new List<Process>();
 		List<Process> finalConsensus = new List<Process>();
 
-		// Remotion of processes marked as duplicate by players
+		#region Remotion of processes marked as duplicate by players
 		foreach (Process process in State.LocalProcesses)
 		{
 			if (process.markedDuplication &&
@@ -200,13 +200,15 @@ public class Server : MonoBehaviour
 				processBag.Add(version);
 			}
 		}
+		#endregion
 
-		// Order process set by descending order of total process score
+		#region Order process set by descending order of total process score
 		Debug.Log(DebugList(processBag));
 		orderedProcesses = processBag.OrderByDescending(proc => proc.GetTotalScore()).ToList();
 		Debug.Log(DebugList(orderedProcesses));
+		#endregion
 
-		// Find process(es) with best total score and store it(/them) in the final consensus set
+		#region Find process(es) with best total score and store it(/them) in the final consensus set
 		finalConsensus.Add(orderedProcesses[0]);
 		foreach (Process NDProcess in orderedProcesses)
 		{
@@ -218,9 +220,9 @@ public class Server : MonoBehaviour
 				finalConsensus.Add(NDProcess);
 			}
 		}
+		#endregion
 
-		// Change state of each winning process, assign bonuses to authors and notify players of
-		// the final consensus set
+		#region Change state of each winning process, assign bonuses to authors and notify players of the final consensus set
 		foreach (Process fcProcess in finalConsensus)
 		{
 			Debug.Log("P" + fcProcess.PID + ((fcProcess is ProcessVersion) ? " V" + (fcProcess as ProcessVersion).PVID : "") +
@@ -236,6 +238,7 @@ public class Server : MonoBehaviour
 			networkView.RPC("FinalConsensus", RPCMode.Others, fcProcess.PID,
 			                (fcProcess is ProcessVersion) ? (fcProcess as ProcessVersion).PVID : -1);
 		}
+		#endregion
 	}
 	
 	public Player GetPlayer(string username, List<Player> list)
@@ -310,11 +313,13 @@ public class Server : MonoBehaviour
 		return score;
 	}
 	
-	public void SendProcess(string player, Process process, bool update) {
+	public void SendProcess(string player, Process process, bool update)
+	{
 		int PVID = -1;
 		int PID = -1;
 		
-		if (process is ProcessVersion) {
+		if (process is ProcessVersion)
+		{
 			ProcessVersion version = process as ProcessVersion;
 			PVID = version.PVID;
 			PID = version.OriginalPID;
@@ -322,7 +327,8 @@ public class Server : MonoBehaviour
 				version.PVID, version.Author, version.markedDuplication, version.markAuthor,
 				version.score, version.published, update);
 		}
-		else {
+		else
+		{
 			PID = process.PID;
 			networkView.RPC("NewProcessAck", RPCMode.Others, "Success",
 				PID, process.Author, process.Name, process.Description,
@@ -330,16 +336,18 @@ public class Server : MonoBehaviour
 				process.duplicationPVID, process.score, process.published, update);
 		}
 	
-		// Loads LANES
-		foreach (Lane lane in process.Pool) {
+		#region Loads LANES
+		foreach (Lane lane in process.Pool)
+		{
 			networkView.RPC("NewLaneAck", RPCMode.Others, "Success",
 				player, PID, PVID, lane.PrID, lane.Participant, lane.x, lane.y, update);
 			
-			// Loads PRIMITIVES
-			foreach (Primitive primitive in lane.Elements) {
-				
-				// EVENT
-				if (primitive is Event) {
+			#region Loads PRIMITIVES
+			foreach (Primitive primitive in lane.Elements)
+			{
+				#region EVENT
+				if (primitive is Event)
+				{
 					Event ev = primitive as Event;
 					
 					if (ev.categ.Equals(Event.Categ.Start))
@@ -352,22 +360,27 @@ public class Server : MonoBehaviour
 						networkView.RPC("NewEventAck", RPCMode.Others, "Success",
 							player, PID, PVID, lane.PrID, ev.PrID, "Merge", ev.x, ev.y, update);
 				}
+				#endregion
 				
-				// COMPOSED ACTIVITY
-				else if (primitive is ComposedActivity) {
+				#region COMPOSED ACTIVITY
+				else if (primitive is ComposedActivity)
+				{
 					ComposedActivity compActivity = primitive as ComposedActivity;
 					networkView.RPC("NewComposedActivityAck", RPCMode.Others, "Success",
 						player, PID, PVID, lane.PrID, compActivity.PrID, compActivity.Name,
 						compActivity.x, compActivity.y, update);
 					
-					foreach (Primitive prim in compActivity.lane.Elements) {
-						if (prim is Activity) {
+					foreach (Primitive prim in compActivity.lane.Elements)
+					{
+						if (prim is Activity)
+						{
 							Activity compSubActivity = prim as Activity;
 							networkView.RPC("AddComposedSubActivityAck", RPCMode.Others, "Success",
 								player, PID, PVID, lane.PrID, compActivity.PrID, compSubActivity.PrID,
 								compSubActivity.Name, compSubActivity.x, compSubActivity.y, update);
 						}
-						else if (prim is Event) {
+						else if (prim is Event)
+						{
 							Event compSubEvent = prim as Event;
 							networkView.RPC("AddEventComposedAck", RPCMode.Others, "Success",
 								player, PID, PVID, lane.PrID, compActivity.PrID, compSubEvent.PrID,
@@ -375,45 +388,55 @@ public class Server : MonoBehaviour
 						}
 					}
 					
-					foreach (Flow flowComposed in compActivity.Connections) {
+					foreach (Flow flowComposed in compActivity.Connections)
+					{
 						networkView.RPC("AddConnectionComposedAck", RPCMode.Others, "Success",
 							player, PID, PVID, lane.PrID, compActivity.PrID, flowComposed.PrID,
 							flowComposed.SourceID, flowComposed.TargetID, flowComposed.Condition, update);
 					}
 				}
+				#endregion
 				
-				// AD-HOC ACTIVITY 
-				else if (primitive is AdHocActivity) {
+				#region AD-HOC ACTIVITY 
+				else if (primitive is AdHocActivity)
+				{
 					AdHocActivity adHocActivity = primitive as AdHocActivity;
 					networkView.RPC("NewAdHocActivityAck", RPCMode.Others, "Success",
 						player, PID, PVID, lane.PrID, adHocActivity.PrID, adHocActivity.Name,
 						adHocActivity.x, adHocActivity.y, update);
 					
-					foreach (Primitive prim in adHocActivity.lane.Elements) {
+					foreach (Primitive prim in adHocActivity.lane.Elements)
+					{
 						Activity activity = prim as Activity;
 						networkView.RPC("AddAdHocSubActivityAck", RPCMode.Others, "Success",
 							player, PID, PVID, lane.PrID, adHocActivity.PrID,
 							activity.PrID, activity.Name, activity.x, activity.y, update);
 					}
 				}
+				#endregion
 				
-				// WORK ACTIVITY
-				else if (primitive is Activity) {
+				#region WORK ACTIVITY
+				else if (primitive is Activity)
+				{
 					Activity activity = primitive as Activity;
 					networkView.RPC("NewActivityAck", RPCMode.Others, "Success",
 						player, PID, PVID, lane.PrID, activity.PrID,
 						activity.Name, activity.x, activity.y, update);
 				}
+				#endregion
 			}
+			#endregion
 		}
+		#endregion
 		
-		// Loads FLOWS
+		#region Loads FLOWS
 		foreach (Flow edge in process.Connections)
 			networkView.RPC("NewConnectionAck", RPCMode.Others, "Success",
 				player, PID, PVID, edge.PrID, edge.SourceID, edge.TargetID,
 				edge.Condition, edge.categ.ToString(), update);
-		
-		// Loads VOTES
+		#endregion
+
+		#region Loads VOTES
 		foreach (Vote qVote in process.QualityVotes)
 			if (process is ProcessVersion)
 				networkView.RPC("VoteQualityVersionAck", RPCMode.Others, "Success",
@@ -425,39 +448,48 @@ public class Server : MonoBehaviour
 		foreach (Vote dVote in process.DuplicationVotes)
 			networkView.RPC("VoteDuplicationProcessAck", RPCMode.Others, "Success",
 				PID, PVID, dVote.GetVote(), dVote.GetVoter() == null ? "" : dVote.GetVoter());
+		#endregion
 	}
 	
-	public void DuplicateProcessToVersion(int PID, int PVID, string author) {
+	public void DuplicateProcessToVersion(int PID, int PVID, string author)
+	{
 		Process process = State.GetProcess(PID);
 		
 		networkView.RPC("UpdateMode", RPCMode.Others, true);
 		
 		networkView.RPC("NewProcessVersionAck", RPCMode.Others, "Success", PID, PVID, author, false, "", 0, false, true);
 		
-		foreach (Lane lane in process.Pool) {
+		foreach (Lane lane in process.Pool)
+		{
 			NewLane(author, PID, PVID, lane.PrID, lane.Participant);
 		
-			// Loads PRIMITIVES
-			foreach (Primitive primitive in lane.Elements) {
-				
-				// EVENT
-				if (primitive is Event) {
+			#region Loads PRIMITIVES
+			foreach (Primitive primitive in lane.Elements)
+			{
+				#region EVENT
+				if (primitive is Event)
+				{
 					Event ev = primitive as Event;
 					NewEvent(author, PID, PVID, lane.PrID, ev.PrID, ev.categ.ToString(), ev.x, ev.y);
 				}
+				#endregion
 				
-				// COMPOSED ACTIVITY
-				else if (primitive is ComposedActivity) {
+				#region COMPOSED ACTIVITY
+				else if (primitive is ComposedActivity)
+				{
 					ComposedActivity compActivity = primitive as ComposedActivity;
 					NewComposedActivity(author, PID, PVID, lane.PrID, compActivity.PrID, compActivity.Name, compActivity.x, compActivity.y);
 					
-					foreach (Primitive prim in compActivity.lane.Elements) {
-						if (prim is Activity) {
+					foreach (Primitive prim in compActivity.lane.Elements)
+					{
+						if (prim is Activity)
+						{
 							Activity compSubActivity = prim as Activity;
 							AddComposedSubActivity(author, PID, PVID, lane.PrID, compActivity.PrID, compSubActivity.PrID,
 								compSubActivity.Name, compSubActivity.x, compSubActivity.y);
 						}
-						else if (prim is Event) {
+						else if (prim is Event)
+						{
 							Event compSubEvent = prim as Event;
 							AddEventComposed(author, PID, PVID, lane.PrID, compActivity.PrID, compSubEvent.PrID, compSubEvent.categ.ToString(),
 								compSubEvent.x, compSubEvent.y);
@@ -468,46 +500,54 @@ public class Server : MonoBehaviour
 						AddConnectionComposed(author, PID, PVID, lane.PrID, compActivity.PrID, flowComposed.PrID, flowComposed.SourceID,
 							flowComposed.TargetID, flowComposed.Condition);
 				}
+				#endregion
 				
-				// AD-HOC ACTIVITY 
-				else if (primitive is AdHocActivity) {
+				#region AD-HOC ACTIVITY 
+				else if (primitive is AdHocActivity)
+				{
 					AdHocActivity adHocActivity = primitive as AdHocActivity;
 					NewAdHocActivity(author, PID, PVID, lane.PrID, adHocActivity.PrID, adHocActivity.Name, adHocActivity.x, adHocActivity.y);
 					
-					foreach (Primitive prim in adHocActivity.lane.Elements) {
+					foreach (Primitive prim in adHocActivity.lane.Elements)
+					{
 						Activity activity = prim as Activity;
 						AddAdHocSubActivity(author, PID, PVID, lane.PrID, adHocActivity.PrID, activity.PrID, activity.Name);
 					}
 				}
+				#endregion
 				
-				// WORK ACTIVITY
-				else if (primitive is Activity) {
+				#region WORK ACTIVITY
+				else if (primitive is Activity)
+				{
 					Activity activity = primitive as Activity;
 					NewActivity(author, PID, PVID, lane.PrID, activity.PrID, activity.Name, activity.x, activity.y);
 				}
+				#endregion
 			}
+			#endregion
 		}
 		
-		// Loads FLOWS
+		#region Loads FLOWS
 		foreach (Flow edge in process.Connections)
 			NewConnection(author, PID, PVID, edge.SourceID, edge.TargetID, edge.Condition, edge.categ.ToString());
-		
+		#endregion
+
 		networkView.RPC("UpdateMode", RPCMode.Others, false);
 	}
 	
-	public void NewAchievement(string player, Achievement.Categ type, bool updateMode) {
+	public void NewAchievement(string player, Achievement.Categ type, bool updateMode)
+	{
 		networkView.RPC("NewAchievementAck", RPCMode.Others, "Success", player, type.ToString(), updateMode);
 	}
 	
-	public void NewMedal(string player, Medal.Categ type, bool updateMode) {
+	public void NewMedal(string player, Medal.Categ type, bool updateMode)
+	{
 		networkView.RPC("NewMedalAck", RPCMode.Others, "Success", player, type.ToString(), updateMode);
 	}
 	
-	/********************/
-	/*    RPC SENDER    */
-	/********************/
+	#region RPC SENDER
 	
-	// Language Constructor
+	#region Language Constructor
 	[RPC] public void LoginAck(string status, string username, float gameLength, string processName) {}
 	[RPC] public void NewProcessAck(string status, int PID, string author, string name, string description, bool markedDuplicated,string markAuthor, int dupPID, int dupPVID, int score, bool published, bool update) {}
 	[RPC] public void NewLaneAck(string status, string player, int PID, int PVID, int PrID, string participant, float x, float y, bool update) {}
@@ -536,8 +576,9 @@ public class Server : MonoBehaviour
 	[RPC] public void RepositionPrimitiveAck(string status, int PID, int PVID, int PrID, float x, float y) {}
 	[RPC] public void RepositionSubPrimitiveAck(string status, int PID, int PVID, int ActPrID, int PrID, float x, float y) {}
 	[RPC] public void NewProcessVersionAck(string status, int PID, int PVID, string author, bool markedDuplication, string markAuthor, int score, bool published, bool update) {}
-	
-	// Game Mechanics
+	#endregion
+
+	#region Game Mechanics
 	[RPC] public void VoteQualityProcessAck(string status, int PID, bool vote, string username) {}
 	[RPC] public void VoteQualityVersionAck(string status, string username, int PID, int PVID, bool vote) {}
 	[RPC] public void MarkAsDuplicatedAck(string status, int PID, int PVID, int originalPID, int originalPVID, string username) {}
@@ -546,46 +587,52 @@ public class Server : MonoBehaviour
 	[RPC] public void NewAchievementAck(string status, string player, string type, bool updateMode) {}
 	[RPC] public void NewMedalAck(string status, string player, string type, bool updateMode) {}
 	[RPC] public void GameOverAck() {}
-	
-	// Data Consistency
+	#endregion
+
+	#region Data Consistency
 	[RPC] public void LoadLocalProcessesAck(string player) {}
 	[RPC] public void UpdateMode(bool update) {}
 	[RPC] public void ResetStateAck() {}
 	[RPC] public void UpdatePlayerBonusMalus(string player, float poisson, float voting, float duplication) {}
 	[RPC] public void FinalConsensus(int PID, int PVID) {}
+	#endregion
+
+	#endregion
 	
+
+	#region RPC RECEIVER
 	
-	
-	/********************/
-	/*   RPC RECEIVER   */
-	/********************/
-	
-	// Language Constructor
-	
+	#region Language Constructor
 	[RPC]
-	public void Login(string username, string password) {
+	public void Login(string username, string password)
+	{
 		int NumLoggedPlayers = 0;
 		
 		foreach (Player player in State.ActivePlayers)
 			NumLoggedPlayers += player.Online ? 1 : 0;
 		
-		if (GetPlayer(username, State.RegisteredPlayers.Players) == null) {
+		if (GetPlayer(username, State.RegisteredPlayers.Players) == null)
+		{
 			networkView.RPC("LoginAck", RPCMode.Others, "Unregistered", username,
 				float.Parse(PaintServerPanels.GameLength)*60, PaintServerPanels.ToElicitProcessName);
 		}
-		else if (!GetPlayer(username, State.RegisteredPlayers.Players).Password.Equals(password)) {
+		else if (!GetPlayer(username, State.RegisteredPlayers.Players).Password.Equals(password))
+		{
 			networkView.RPC("LoginAck", RPCMode.Others, "WrongPass", username,
 				float.Parse(PaintServerPanels.GameLength)*60, PaintServerPanels.ToElicitProcessName);
 		}
-		else if (GetPlayer(username, State.ActivePlayers) != null && GetPlayer(username, State.ActivePlayers).Online) {
+		else if (GetPlayer(username, State.ActivePlayers) != null && GetPlayer(username, State.ActivePlayers).Online)
+		{
 			networkView.RPC("LoginAck", RPCMode.Others, "AlreadyLogged", username,
 				float.Parse(PaintServerPanels.GameLength)*60, PaintServerPanels.ToElicitProcessName);
 		}
-		else if (NumLoggedPlayers >= float.Parse(PaintServerPanels.NumberPlayers)) {
+		else if (NumLoggedPlayers >= float.Parse(PaintServerPanels.NumberPlayers))
+		{
 			networkView.RPC("LoginAck", RPCMode.Others, "ExceededNumberPlayers", username,
 				float.Parse(PaintServerPanels.GameLength)*60, PaintServerPanels.ToElicitProcessName);
 		}
-		else {
+		else
+		{
 			Player LoggingPlayer = State.ActivePlayers.Find(player => player.Username.Equals(username));
 			LoggingPlayer.Online = true;
 			networkView.RPC("LoginAck", RPCMode.Others, "Success", username,
@@ -595,14 +642,16 @@ public class Server : MonoBehaviour
 	}
 	
 	[RPC]
-	public void LogoutAck(string username) {
+	public void LogoutAck(string username)
+	{
 		Player LoggedPlayer = State.ActivePlayers.Find(player => player.Username.Equals(username));
 		LoggedPlayer.Online = false;
 		Console.Log.Add("Player " + LoggedPlayer.Username + " has <b>logged out</b>.");
 	}
 
 	[RPC]
-	public void NewProcess(string author, string name, string description) {
+	public void NewProcess(string author, string name, string description)
+	{
 		Process process = new Process(name, description);
 		Player processAuthor = State.ActivePlayers.Find(player => player.Username.Equals(author));
 		
@@ -618,16 +667,20 @@ public class Server : MonoBehaviour
 	}
 	
 	[RPC]
-	public void NewLane(string player, int PID, int PVID, string participant) {
-		try {
+	public void NewLane(string player, int PID, int PVID, string participant)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			Lane lane = new Lane(participant);
 			
-			if (process.Pool.Count == 0) {
+			if (process.Pool.Count == 0)
+			{
 				lane.x = (SCREEN_WIDTH-60)/2;
 				lane.y = 180/2;
 			}
-			else {
+			else
+			{
 				lane.x = (SCREEN_WIDTH-60)/2;
 				lane.y = 179*process.Pool.Count + 180/2;
 			}
@@ -636,23 +689,28 @@ public class Server : MonoBehaviour
 			networkView.RPC("NewLaneAck", RPCMode.Others, "Success", player, PID, PVID, lane.PrID, participant, lane.x, lane.y, false);
 			Console.Log.Add("<b>Added lane</b> to process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewLaneAck", RPCMode.Others, "Failure", player, PID, PVID, -1, participant, -1, -1, false);
 		}
 	}
 	
 	[RPC]
-	public void NewLane(string player, int PID, int PVID, int LaneID, string participant) {
-		try {
+	public void NewLane(string player, int PID, int PVID, int LaneID, string participant)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			Lane lane = new Lane(LaneID, participant);
 			
-			if (process.Pool.Count == 0) {
+			if (process.Pool.Count == 0)
+			{
 				lane.x = (SCREEN_WIDTH-60)/2;
 				lane.y = 180/2;
 			}
-			else {
+			else
+			{
 				lane.x = (SCREEN_WIDTH-60)/2;
 				lane.y = 179*process.Pool.Count + 180/2;
 			}
@@ -661,15 +719,18 @@ public class Server : MonoBehaviour
 			networkView.RPC("NewLaneAck", RPCMode.Others, "Success", player, PID, PVID, lane.PrID, participant, lane.x, lane.y, false);
 			Console.Log.Add("<b>Added lane</b> to process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewLaneAck", RPCMode.Others, "Failure", player, PID, PVID, -1, participant, -1, -1, false);
 		}
 	}
 	
 	[RPC]
-	public void EditProcess(int PID, string name, string description) {
-		try {
+	public void EditProcess(int PID, string name, string description)
+	{
+		try
+		{
 			Process process = State.GetProcess(PID);
 			
 			process.Name = name;
@@ -677,47 +738,56 @@ public class Server : MonoBehaviour
 			networkView.RPC("EditProcessAck", RPCMode.Others, "Success", PID, name, description);
 			Console.Log.Add("<b>Edited process</b> " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("EditProcessAck", RPCMode.Others, "Failure", PID, name, description);
 		}
 	}
 	
 	[RPC]
-	public void EditLane(int PID, int PVID, int LaneID, string participant) {
-		try {
+	public void EditLane(int PID, int PVID, int LaneID, string participant)
+	{
+		try
+		{
 			Lane lane = State.GetLane(PID, PVID, LaneID);
 			lane.Participant = participant;
 			
 			networkView.RPC("EditLaneAck", RPCMode.Others, "Success", PID, PVID, LaneID, participant);
 			Console.Log.Add("<b>Edited lane</b> from process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("EditLaneAck", RPCMode.Others, "Failure", PID, PVID, LaneID, participant);
 		}
 	}
 	
 	[RPC]
-	public void NewEvent(string player, int PID, int PVID, int LaneID, int PrID, string category, float x, float y) {
-		try {
+	public void NewEvent(string player, int PID, int PVID, int LaneID, int PrID, string category, float x, float y)
+	{
+		try
+		{
 			Lane lane = State.GetLane(PID, PVID, LaneID);
 			Event ev = null;
-			if (category.Equals("Start")) {
+			if (category.Equals("Start"))
+			{
 				if (PrID == -1)
 					ev = new Event(Event.Categ.Start);
 				else
 					ev = new Event(PrID, Event.Categ.Start, -1, -1);
 				ev.x = 80;
 			}
-			else if (category.Equals("End")) {
+			else if (category.Equals("End"))
+			{
 				if (PrID == -1)
 					ev = new Event(Event.Categ.End);
 				else
 					ev = new Event(PrID, Event.Categ.End, -1, -1);
 				ev.x = SCREEN_WIDTH - 100;
 			}
-			else if (category.Equals("Merge")) {
+			else if (category.Equals("Merge"))
+			{
 				if (PrID == -1)
 					ev = new Event(Event.Categ.Merge);
 				else
@@ -735,9 +805,7 @@ public class Server : MonoBehaviour
 			
 			ev.y = lane.y;
 			
-			if (x != -1) {
-				ev.x = x; ev.y = y;
-			}
+			if (x != -1) { ev.x = x; ev.y = y; }
 			
 			lane.Elements.Add(ev);
 			networkView.RPC("NewEventAck", RPCMode.Others, "Success",
@@ -749,15 +817,18 @@ public class Server : MonoBehaviour
 			else if (ev.categ.Equals(Event.Categ.Merge))
 				Console.Log.Add("<b>Added merge</b> to process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewEventAck", RPCMode.Others, "Failure", player, PID, PVID, -1, -1, category, -1, -1, false);
 		}
 	}
 	
 	[RPC]
-	public void NewActivity(string player, int PID, int PVID, int LaneID, int PrID, string name, float x, float y) {
-		try {
+	public void NewActivity(string player, int PID, int PVID, int LaneID, int PrID, string name, float x, float y)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			Activity activity;
 			
@@ -768,22 +839,27 @@ public class Server : MonoBehaviour
 			
 			Lane lane = State.GetLane(PID, PVID, LaneID);
 			
-			if (x == -1) {
-				if (lane.Elements.Count == 0) {
+			if (x == -1)
+			{
+				if (lane.Elements.Count == 0)
+				{
 					activity.x = 200;
 					activity.y = 180*process.Pool.Count - 90;
 				}
 				else if (lane.Elements[lane.Elements.Count-1] is Event &&
-					!(lane.Elements[lane.Elements.Count-1] as Event).categ.Equals(Event.Categ.Merge)) {
+					!(lane.Elements[lane.Elements.Count-1] as Event).categ.Equals(Event.Categ.Merge))
+				{
 					activity.x = 200;
 					activity.y = lane.Elements[lane.Elements.Count-1].y;
 				}
-				else {
+				else
+				{
 					activity.x = lane.Elements[lane.Elements.Count-1].x + 170;
 					activity.y = lane.Elements[lane.Elements.Count-1].y;
 				}
 			}
-			else {
+			else
+			{
 				activity.x = x;
 				activity.y = y;
 			}
@@ -793,7 +869,8 @@ public class Server : MonoBehaviour
 				activity.PrID, activity.Name, activity.x, activity.y, false);
 			Console.Log.Add("<b>Added activity</b> to process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewActivityAck", RPCMode.Others, "Failure", player, PID, PVID, LaneID,
 				-1, -1, "", -1, -1, false);
@@ -801,8 +878,10 @@ public class Server : MonoBehaviour
 	}
 	
 	[RPC]
-	public void NewComposedActivity(string player, int PID, int PVID, int LaneID, int PrID, string name, float x, float y) {
-		try {
+	public void NewComposedActivity(string player, int PID, int PVID, int LaneID, int PrID, string name, float x, float y)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			ComposedActivity activity;
 			
@@ -813,22 +892,27 @@ public class Server : MonoBehaviour
 			
 			Lane lane = State.GetLane(PID, PVID, LaneID);
 			
-			if (x == -1) {
-				if (lane.Elements.Count == 0) {
+			if (x == -1)
+			{
+				if (lane.Elements.Count == 0)
+				{
 					activity.x = 200;
 					activity.y = 180*process.Pool.Count-90;
 				}
 				else if (lane.Elements[lane.Elements.Count-1] is Event &&
-					!(lane.Elements[lane.Elements.Count-1] as Event).categ.Equals(Event.Categ.Merge)) {
+					!(lane.Elements[lane.Elements.Count-1] as Event).categ.Equals(Event.Categ.Merge))
+				{
 					activity.x = 200;
 					activity.y = lane.Elements[lane.Elements.Count-1].y;
 				}
-				else {
+				else
+				{
 					activity.x = lane.Elements[lane.Elements.Count-1].x + 170;
 					activity.y = lane.Elements[lane.Elements.Count-1].y;
 				}
 			}
-			else {
+			else
+			{
 				activity.x = x;
 				activity.y = y;
 			}				
@@ -839,15 +923,18 @@ public class Server : MonoBehaviour
 				activity.PrID, activity.Name, activity.x, activity.y, false);
 			Console.Log.Add("<b>Added composed activity</b> to process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewComposedActivityAck", RPCMode.Others, "Failure", player, PID, PVID, LaneID, -1, -1, "", (float)-1, (float)-1, false);
 		}
 	}
 	
 	[RPC]
-	public void NewAdHocActivity(string player, int PID, int PVID, int LaneID, int PrID, string name, float x, float y) {
-		try {
+	public void NewAdHocActivity(string player, int PID, int PVID, int LaneID, int PrID, string name, float x, float y)
+	{
+		try
+		{
 			AdHocActivity activity;
 			
 			if (PrID == -1)
@@ -857,22 +944,27 @@ public class Server : MonoBehaviour
 			
 			Lane lane = State.GetLane(PID, PVID, LaneID);
 			
-			if (x == -1) {
-				if (lane.Elements.Count == 0) {
+			if (x == -1)
+			{
+				if (lane.Elements.Count == 0)
+				{
 					activity.x = 200;
 					activity.y = lane.y;
 				}
 				else if (lane.Elements[lane.Elements.Count-1] is Event &&
-					!(lane.Elements[lane.Elements.Count-1] as Event).categ.Equals(Event.Categ.Merge)) {
+					!(lane.Elements[lane.Elements.Count-1] as Event).categ.Equals(Event.Categ.Merge))
+				{
 					activity.x = 200;
 					activity.y = lane.y;
 				}
-				else {
+				else
+				{
 					activity.x = lane.Elements[lane.Elements.Count-1].x + 170;
 					activity.y = lane.y;
 				}
 			}
-			else {
+			else
+			{
 				activity.x = x;
 				activity.y = y;
 			}
@@ -882,7 +974,8 @@ public class Server : MonoBehaviour
 				activity.PrID, activity.Name, activity.x, activity.y, false);
 			Console.Log.Add("<b>Added ad-hoc activity</b> to process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewAdHocActivityAck", RPCMode.Others, "Failure", player, PID, PVID, LaneID, -1, -1, "", (float)-1, (float)-1, false);
 		}
@@ -890,25 +983,28 @@ public class Server : MonoBehaviour
 	
 	[RPC]
 	public void AddAdHocSubActivity(string player, int PID, int PVID, int LaneID, int ActPrID, int PrID, string name) {
-		try {
+		try
+		{
 			Activity newActivity;
 			Activity activity = State.GetActivityWithPrID(PID, PVID, LaneID, ActPrID);
-			//Lane lane = State.GetLane(PID, LaneID);
 			AdHocActivity adHocActivity = activity as AdHocActivity;
 			if (PrID == -1)
 				newActivity = new Activity(name, "");
 			else
 				newActivity = new Activity(PrID, name);
 			
-			if (adHocActivity.lane.Elements.Count == 0) {
+			if (adHocActivity.lane.Elements.Count == 0)
+			{
 				newActivity.x = SCREEN_WIDTH/2-235;
 				newActivity.y = 80;
 			}
-			else if (adHocActivity.lane.Elements.Count % 4 == 0) {
+			else if (adHocActivity.lane.Elements.Count % 4 == 0)
+			{
 				newActivity.x = SCREEN_WIDTH/2-235;
 				newActivity.y = adHocActivity.lane.Elements[adHocActivity.lane.Elements.Count-1].y + 80;
 			}
-			else {
+			else
+			{
 				newActivity.x = adHocActivity.lane.Elements[adHocActivity.lane.Elements.Count-1].x + 170;
 				newActivity.y = adHocActivity.lane.Elements[adHocActivity.lane.Elements.Count-1].y;
 			}
@@ -918,34 +1014,39 @@ public class Server : MonoBehaviour
 				ActPrID, newActivity.PrID, newActivity.Name, newActivity.x, newActivity.y, false);
 			Console.Log.Add("<b>Added work activity to Ad-Hoc activity</b> " + ActPrID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("AddAdHocSubActivityAck", RPCMode.Others, "Failure", player, PID, PVID, LaneID, ActPrID, -1, -1, "", -1, -1, false);
 		}
 	}
 	
 	[RPC]
-	public void AddComposedSubActivity(string player, int PID, int PVID, int LaneID, int ActPrID, int PrID, string name, float x, float y) {
-		try {
+	public void AddComposedSubActivity(string player, int PID, int PVID, int LaneID, int ActPrID, int PrID, string name, float x, float y)
+	{
+		try
+		{
 			Activity newActivity, activity = State.GetActivityWithPrID(PID, PVID, LaneID, ActPrID);
 			ComposedActivity composedActivity = activity as ComposedActivity;
 			
-			if (PrID == -1)
-				newActivity = new Activity(name, "");
-			else
-				newActivity = new Activity(PrID, name);
+			if (PrID == -1) newActivity = new Activity(name, "");
+			else newActivity = new Activity(PrID, name);
 			
-			if (x == -1) {
-				if (composedActivity.lane.Elements.Count <= 2) {
+			if (x == -1)
+			{
+				if (composedActivity.lane.Elements.Count <= 2)
+				{
 					newActivity.x = 230;
 					newActivity.y = 168;
 				}
-				else {
+				else
+				{
 					newActivity.x = composedActivity.lane.Elements[composedActivity.lane.Elements.Count-1].x + 170;
 					newActivity.y = composedActivity.lane.Elements[composedActivity.lane.Elements.Count-1].y;
 				}
 			}
-			else {
+			else
+			{
 				newActivity.x = x;
 				newActivity.y = y;
 			}
@@ -955,36 +1056,44 @@ public class Server : MonoBehaviour
 				newActivity.PrID, name, newActivity.x, newActivity.y, false);
 			Console.Log.Add("<b>Added work activity to composed activity</b> " + ActPrID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("AddComposedSubActivityAck", RPCMode.Others, "Failure", player, PID, PVID, LaneID, ActPrID, -1, -1, name, -1, -1, false);
 		}
 	}
 	
 	[RPC]
-	public void AddEventComposed(string player, int PID, int PVID, int LaneID, int ActPrID, int PrID, string type, float x, float y) {
-		try {
+	public void AddEventComposed(string player, int PID, int PVID, int LaneID, int ActPrID, int PrID, string type, float x, float y)
+	{
+		try
+		{
 			Activity activity = State.GetActivityWithPrID(PID, PVID, LaneID, ActPrID);
 			ComposedActivity composedActivity = activity as ComposedActivity;
 			Event compEvent;
 			
-			if (type.Equals("Start")) {
-				if (PrID == -1) {
+			if (type.Equals("Start"))
+			{
+				if (PrID == -1)
+				{
 					compEvent = new Event(Event.Categ.Start);
 					compEvent.x = 100; compEvent.y = 165;
 				}
 				else
 					compEvent = new Event(PrID, Event.Categ.Start, 100, 165);
 			}
-			else if (type.Equals("End")) {
-				if (PrID == -1) {
+			else if (type.Equals("End"))
+			{
+				if (PrID == -1)
+				{
 					compEvent = new Event(Event.Categ.End);
 					compEvent.x = SCREEN_WIDTH-150; compEvent.y = 165;
 				}
 				else
 					compEvent = new Event(PrID, Event.Categ.Start, SCREEN_WIDTH-150, 165);
 			}
-			else if (type.Equals("Merge")) {
+			else if (type.Equals("Merge"))
+			{
 				if (PrID == -1) 
 					compEvent = new Event(Event.Categ.Merge);
 				else
@@ -996,9 +1105,8 @@ public class Server : MonoBehaviour
 			else
 				compEvent = new Event();
 			
-			if (x != -1) {
+			if (x != -1)
 				compEvent.x = x; compEvent.y = y;
-			}
 			
 			composedActivity.lane.Elements.Add(compEvent);
 			networkView.RPC("AddEventComposedAck", RPCMode.Others, "Success", player, PID, PVID, LaneID, ActPrID,
@@ -1006,15 +1114,18 @@ public class Server : MonoBehaviour
 			Console.Log.Add("<b>Added event to composed activity</b> " + ActPrID + ".");
 			
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("AddEventComposedAck", RPCMode.Others, "Failure", player, PID, PVID, LaneID, ActPrID, -1, type, false);
 		}
 	}
 	
 	[RPC]
-	public void AddConnectionComposed(string player, int PID, int PVID, int LaneID, int ActPrID, int PrID, int sourceID, int targetID, string condition) {
-		try {
+	public void AddConnectionComposed(string player, int PID, int PVID, int LaneID, int ActPrID, int PrID, int sourceID, int targetID, string condition)
+	{
+		try
+		{
 			Flow flow;
 			Activity activity = State.GetActivityWithPrID(PID, PVID, LaneID, ActPrID);
 			ComposedActivity composedActivity = activity as ComposedActivity;
@@ -1029,15 +1140,18 @@ public class Server : MonoBehaviour
 				flow.PrID, sourceID, targetID, condition, false);
 			Console.Log.Add("<b>Added flow</b> between sub primitives " + sourceID + " and " + targetID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("AddConnectionComposedAck", RPCMode.Others, "Failure", player, PID, PVID, LaneID, ActPrID, -1, sourceID, targetID, condition, false);
 		}
 	} 
 	
 	[RPC]
-	public void NewConnection(string player, int PID, int PVID, int sourcePrID, int targetPrID, string condition, string type) {
-		try {
+	public void NewConnection(string player, int PID, int PVID, int sourcePrID, int targetPrID, string condition, string type)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			Flow flow;
 			
@@ -1054,60 +1168,72 @@ public class Server : MonoBehaviour
 			else
 				Console.Log.Add("<b>Added loop cycle</b> to primitive " + sourcePrID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewConnectionAck", RPCMode.Others, "Failure", player, PID, PVID, -1, sourcePrID, targetPrID, condition, type, false);
 		}
 	}
 	
 	[RPC]
-	public void EditConnection(int PID, int PVID, int sourcePrID, int targetPrID, string condition) {
-		try {
+	public void EditConnection(int PID, int PVID, int sourcePrID, int targetPrID, string condition)
+	{
+		try
+		{
 			Flow flow = State.GetFlow(PID, PVID, sourcePrID, targetPrID);
 			
 			flow.Condition = condition;
 			networkView.RPC("EditConnectionAck", RPCMode.Others, "Success", PID, PVID, sourcePrID, targetPrID, condition);
 			Console.Log.Add("<b>Edited connection</b> from process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("EditConnectionAck", RPCMode.Others, "Failure", PID, PVID, sourcePrID, targetPrID, condition);
 		}
 	}
 	
 	[RPC]
-	public void EditSubFlow(int PID, int PVID, int LaneID, int ActPrID, int FlowID, string condition) {
-		try {
+	public void EditSubFlow(int PID, int PVID, int LaneID, int ActPrID, int FlowID, string condition)
+	{
+		try
+		{
 			Flow flow = State.GetSubFlow(PID, PVID, LaneID, ActPrID, FlowID);
 			
 			flow.Condition = condition;
 			networkView.RPC("EditSubFlowAck", RPCMode.Others, "Success", PID, PVID, LaneID, ActPrID, FlowID, condition);
 			Console.Log.Add("<b>Edited sub flow</b> " + FlowID + " from composed activity " + ActPrID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("EditSubFlowAck", RPCMode.Others, "Failure", PID, PVID, LaneID, ActPrID, FlowID, condition);
 		}
 	}
 	
 	[RPC]
-	public void EditActivity(int PID, int PVID, int LaneID, int PrID, string name) {
-		try {
+	public void EditActivity(int PID, int PVID, int LaneID, int PrID, string name)
+	{
+		try
+		{
 			Activity activity = State.GetActivityWithPrID(PID, PVID, LaneID, PrID);
 			
 			activity.Name = name;
 			networkView.RPC("EditActivityAck", RPCMode.Others, "Success", PID, PVID, LaneID, PrID, name);
 			Console.Log.Add("<b>Edited activity with PrimID</b> " + PrID + " from process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("EditActivityAck", RPCMode.Others, "Failure", PID, PVID, LaneID, PrID, "");
 		}
 	}
 	
 	[RPC]
-	public void EditSubActivity(int PID, int PVID, int LaneID, int ActPrID, int SPrID, string name) {
-		try {
+	public void EditSubActivity(int PID, int PVID, int LaneID, int ActPrID, int SPrID, string name)
+	{
+		try
+		{
 			Primitive primitive = State.GetSubPrimitive(PID, PVID, LaneID, ActPrID, SPrID);
 			Activity activity = primitive as Activity;
 			
@@ -1115,15 +1241,18 @@ public class Server : MonoBehaviour
 			networkView.RPC("EditSubActivityAck", RPCMode.Others, "Success", PID, PVID, LaneID, ActPrID, SPrID, name);
 			Console.Log.Add("<b>Edited sub activity</b> " + SPrID + " from activity " + ActPrID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("EditSubActivityAck", RPCMode.Others, "Failure", PID, PVID, LaneID, ActPrID, SPrID, "");
 		}
 	}
 	
 	[RPC]
-	public void RemovePrimitive(int PID, int PVID, int LaneID, int PrID) {
-		try {
+	public void RemovePrimitive(int PID, int PVID, int LaneID, int PrID)
+	{
+		try
+		{
 			Primitive primitive = State.GetPrimitive(PID, PVID, PrID);
 			Lane lane = State.GetLane(PID, PVID, LaneID);
 			
@@ -1132,23 +1261,28 @@ public class Server : MonoBehaviour
 			networkView.RPC("RemovePrimitiveAck", RPCMode.Others, "Success", PID, PVID, LaneID, PrID);
 			Console.Log.Add("<b>Removed primitive</b> " + PrID + " from process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("RemovePrimitiveAck", RPCMode.Others, "Failure", PID, PVID, LaneID, PrID);
 		}
 	}
 	
 	[RPC]
-	public void RemoveSubPrimitive(int PID, int PVID, int LaneID, int ActPrID, int SPrID) {
-		try {
+	public void RemoveSubPrimitive(int PID, int PVID, int LaneID, int ActPrID, int SPrID)
+	{
+		try
+		{
 			Activity activity = State.GetActivityWithPrID(PID, PVID, LaneID, ActPrID);
 			Primitive primitive = State.GetSubPrimitive(PID, PVID, LaneID, ActPrID, SPrID);
 			
-			if (activity is AdHocActivity) {
+			if (activity is AdHocActivity)
+			{
 				AdHocActivity adHocActivity = activity as AdHocActivity;
 				adHocActivity.lane.Elements.Remove(primitive);
 			}
-			else if (activity is ComposedActivity) {
+			else if (activity is ComposedActivity)
+			{
 				ComposedActivity composedActivity = activity as ComposedActivity;
 				
 				foreach (Flow flow in composedActivity.Connections)
@@ -1162,15 +1296,18 @@ public class Server : MonoBehaviour
 			networkView.RPC("RemoveSubPrimitiveAck", RPCMode.Others, "Success", PID, PVID, LaneID, ActPrID, SPrID);
 			Console.Log.Add("<b>Removed sub primitive</b> " + SPrID + " from activity " + ActPrID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("RemoveSubPrimitiveAck", RPCMode.Others, "Failure", PID, PVID, LaneID, ActPrID, SPrID);
 		}
 	}
 	
 	[RPC]
-	public void RemoveFlow(int PID, int PVID, int FlowID) {
-		try {
+	public void RemoveFlow(int PID, int PVID, int FlowID)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			Flow flow = State.GetFlow(PID, PVID, FlowID);
 			
@@ -1178,15 +1315,18 @@ public class Server : MonoBehaviour
 			networkView.RPC("RemoveFlowAck", RPCMode.Others, "Success", PID, PVID, FlowID);
 			Console.Log.Add("<b>Removed flow</b> " + FlowID + " from process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("RemoveFlowAck", RPCMode.Others, "Failure", PID, PVID, FlowID);
 		}
 	}
 	
 	[RPC]
-	public void RemoveSubFlow(int PID, int PVID, int LaneID, int ActPrID, int FlowID) {
-		try {
+	public void RemoveSubFlow(int PID, int PVID, int LaneID, int ActPrID, int FlowID)
+	{
+		try
+		{
 			Activity activity = State.GetActivityWithPrID(PID, PVID, LaneID, ActPrID);
 			ComposedActivity composedActivity = activity as ComposedActivity;
 			Flow flow = State.GetSubFlow(PID, PVID, LaneID, ActPrID, FlowID);
@@ -1195,15 +1335,18 @@ public class Server : MonoBehaviour
 			networkView.RPC("RemoveSubFlowAck", RPCMode.Others, "Success", PID, PVID, LaneID, ActPrID, FlowID);
 			Console.Log.Add("<b>Removed sub flow</b> " + FlowID + " from composed activity " + ActPrID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("RemoveSubFlowAck", RPCMode.Others, "Failure", PID, PVID, LaneID, ActPrID, FlowID);
 		}
 	}
 	
 	[RPC]
-	public void RemoveLane(int PID, int PVID, int LaneID) {
-		try {
+	public void RemoveLane(int PID, int PVID, int LaneID)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			Lane lane = State.GetLane(PID, PVID, LaneID);
 			
@@ -1211,7 +1354,8 @@ public class Server : MonoBehaviour
 				State.RemoveFlows(PID, PVID, prim.PrID);
 			
 			bool toReposition = false;
-			foreach (Lane l in process.Pool) {
+			foreach (Lane l in process.Pool)
+			{
 				if (l.PrID == LaneID) toReposition = true;
 				
 				if (toReposition)
@@ -1221,12 +1365,15 @@ public class Server : MonoBehaviour
 			
 			process.Pool.Remove(lane);
 			
-			for (int i = 0; i < process.Pool.Count; i++) {
-				if (i == 0) {
+			for (int i = 0; i < process.Pool.Count; i++)
+			{
+				if (i == 0)
+				{
 					process.Pool[0].x = (Painter.SCREEN_WIDTH-60)/2;
 					process.Pool[0].y = 180/2;
 				}
-				else {
+				else
+				{
 					process.Pool[i].x = (Painter.SCREEN_WIDTH-60)/2;
 					process.Pool[i].y = 179*i + 180/2;
 				}
@@ -1235,19 +1382,23 @@ public class Server : MonoBehaviour
 			networkView.RPC("RemoveLaneAck", RPCMode.Others, "Success", PID, PVID, LaneID);
 			Console.Log.Add("<b>Removed lane</b> " + LaneID + " from process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("RemoveLaneAck", RPCMode.Others, "Failure", PID, PVID, LaneID);
 		}
 	}
 	
 	[RPC]
-	public void RemoveProcess(int PID, int PVID) {
-		try {
+	public void RemoveProcess(int PID, int PVID)
+	{
+		try
+		{
 			Process process = State.GetTargetProcess(PID, PVID);
 			Player processAuthor = State.ActivePlayers.Find(player => player.Username.Equals(process.Author));
 			
-			if (PVID == -1) {
+			if (PVID == -1)
+			{
 				if (process.published)
 					processAuthor.NumPubProcesses--;
 				else
@@ -1255,8 +1406,8 @@ public class Server : MonoBehaviour
 					
 				State.LocalProcesses.Remove(process);
 			}
-			else {
-				//ProcessVersion version = process as ProcessVersion;
+			else
+			{
 				Process originalProcess = State.GetProcess(PID);
 				if (originalProcess.published)
 					processAuthor.NumPubVersions--;
@@ -1269,28 +1420,34 @@ public class Server : MonoBehaviour
 			networkView.RPC("RemoveProcessAck", RPCMode.Others, "Success", PID, PVID);
 			Console.Log.Add("<b>Removed process</b> " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("RemoveProcessAck", RPCMode.Others, "Failure", PID, PVID);
 		}
 	}
 	
 	[RPC]
-	public void ChangeLane(int PID, int PVID, int PrID, int LaneID) {
-		try {
+	public void ChangeLane(int PID, int PVID, int PrID, int LaneID)
+	{
+		try
+		{
 			State.ChangeLane(PID, PVID, PrID, LaneID);
 			networkView.RPC("ChangeLaneAck", RPCMode.Others, "Success", PID, PVID, PrID, LaneID);
 			Console.Log.Add("<b>Changed lane</b> to " + LaneID + " from process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("ChangeLaneAck", RPCMode.Others, "Failure", PID, PVID, PrID, LaneID);
 		}
 	}
 	
 	[RPC]
-	public void RepositionPrimitive(int PID, int PVID, int PrID, float x, float y) {
-		try {
+	public void RepositionPrimitive(int PID, int PVID, int PrID, float x, float y)
+	{
+		try
+		{
 			Primitive primitive = State.GetPrimitive(PID, PVID, PrID);
 			
 			primitive.x = x;
@@ -1298,31 +1455,38 @@ public class Server : MonoBehaviour
 			
 			networkView.RPC("RepositionPrimitiveAck", RPCMode.Others, "Success", PID, PVID, PrID, x, y);
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 		}
 	}
 	
 	[RPC]
-	public void RepositionSubPrimitive(int PID, int PVID, int PrID, int RPrID, float x, float y) {
-		try {
+	public void RepositionSubPrimitive(int PID, int PVID, int PrID, int RPrID, float x, float y)
+	{
+		try
+		{
 			Primitive primitive = State.GetPrimitive(PID, PVID, PrID);
 			
-			if (primitive is AdHocActivity) {
+			if (primitive is AdHocActivity)
+			{
 				AdHocActivity adHocActivity = primitive as AdHocActivity;
 				
 				foreach (Primitive prim in adHocActivity.lane.Elements)
-					if (prim.PrID == RPrID) {
+					if (prim.PrID == RPrID)
+					{
 						prim.x = x;
 						prim.y = y;
 						break;
 					}
 			}
-			else if (primitive is ComposedActivity) {
+			else if (primitive is ComposedActivity)
+			{
 				ComposedActivity composedActivity = primitive as ComposedActivity;
 				
 				foreach (Primitive prim in composedActivity.lane.Elements)
-					if (prim.PrID == RPrID) {
+					if (prim.PrID == RPrID)
+					{
 						prim.x = x;
 						prim.y = y;
 						break;
@@ -1331,7 +1495,8 @@ public class Server : MonoBehaviour
 			
 			networkView.RPC("RepositionSubPrimitiveAck", RPCMode.Others, "Success", PID, PVID, PrID, RPrID, x, y);
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 		}
 	}
@@ -1341,17 +1506,20 @@ public class Server : MonoBehaviour
 	/// ! May be work-intensive !
 	/// </summary>
 	[RPC]
-	public void LoadLocalProcesses(string player) {
+	public void LoadLocalProcesses(string player)
+	{
 		Player playerInst = GetPlayer(player);
 		
-		// Loads PROCESSES
-		foreach (Process process in State.LocalProcesses) {
+		#region Loads PROCESSES
+		foreach (Process process in State.LocalProcesses)
+		{
 			if (process.published || process.Author.Equals(player))
 				SendProcess(player, process, true);
 			
 			foreach (ProcessVersion version in process.Versions) 
 				SendProcess(player, version, true);
 		}
+		#endregion
 		
 		foreach (Medal medal in playerInst.Medals)
 			NewMedal(player, medal.categ, true);
@@ -1364,19 +1532,23 @@ public class Server : MonoBehaviour
 	}
 	
 	[RPC]
-	public void LoadFromXml(string player, int passNumber, int numberPasses, string XmlFraction) {
-		if (numberPasses == 1) {
+	public void LoadFromXml(string player, int passNumber, int numberPasses, string XmlFraction)
+	{
+		if (numberPasses == 1)
+		{
 			XmlMessage = XmlFraction;
 			XmlReceived = true;
 		}
-		else if (passNumber == numberPasses) {
+		else if (passNumber == numberPasses)
+		{
 			XmlMessage += XmlFraction;
 			XmlReceived = true;
 		}
 		else
 			XmlMessage += XmlFraction;
 		
-		if (XmlReceived) {
+		if (XmlReceived)
+		{
 			State = State.LoadFromXml(XmlMessage);
 			XmlMessage = "";
 			XmlReceived = false;
@@ -1385,8 +1557,10 @@ public class Server : MonoBehaviour
 	}
 	
 	[RPC]
-	public void NewProcessVersion(int PID, string author) {
-		try {
+	public void NewProcessVersion(int PID, string author)
+	{
+		try
+		{
 			Process process = State.GetProcess(PID);
 			ProcessVersion version = new ProcessVersion(process.lastPVID++, process, author);
 			Player versionAuthor = State.ActivePlayers.Find(player => player.Username.Equals(author));
@@ -1396,24 +1570,27 @@ public class Server : MonoBehaviour
 
 			DuplicateProcessToVersion(PID, version.PVID, author);
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("NewProcessVersionAck", RPCMode.Others, "Failure", PID, -1, author, false, "", -1, false, false);
 		}
 	}
+	#endregion
 	
-	
-	// Mechanics
-	
+	#region Mechanics
 	[RPC]
-	public void VoteQualityProcess(int PID, bool vote, string username) {
-		try {
+	public void VoteQualityProcess(int PID, bool vote, string username)
+	{
+		try
+		{
 			Process process = State.GetProcess(PID);
 			Player player = GetPlayer(username, State.ActivePlayers);
 			process.VoteForQuality(vote, username);
-			
+
 			if (!player.AlreadyContainsAchievement(Achievement.Categ.VotedProcessPlayers) &&
-				State.PlayerVotedProcessAllPlayers(username)) {
+				State.PlayerVotedProcessAllPlayers(username))
+			{
 				player.NewAchievement(Achievement.Categ.VotedProcessPlayers, false, false);
 				NewAchievement(username, Achievement.Categ.VotedProcessPlayers, false);
 			}
@@ -1423,20 +1600,24 @@ public class Server : MonoBehaviour
 			networkView.RPC("VoteQualityProcessAck", RPCMode.Others, "Success", PID, vote, username);
 			Console.Log.Add("Player " + username + " <b>voted for quality</b> of process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("VoteQualityProcessAck", RPCMode.Others, "Failure", PID, vote, username);
 		}
 	}
 	
 	[RPC]
-	public void VoteQualityVersion(string username, int PID, int PVID, bool vote) {
-		try {
+	public void VoteQualityVersion(string username, int PID, int PVID, bool vote)
+	{
+		try
+		{
 			Player voter = State.ActivePlayers.Find(player => player.Username.Equals(username));
 			ProcessVersion version = State.GetProcessVersion(PID, PVID);
 			
 			version.VoteForQuality(vote, username);
-			if (voter != null) {
+			if (voter != null)
+			{
 				if (PVID == -1)
 					voter.NumVotesProcesses++;
 				else
@@ -1448,15 +1629,18 @@ public class Server : MonoBehaviour
 			networkView.RPC("VoteQualityVersionAck", RPCMode.Others, "Success", username, PID, PVID, vote);
 			Console.Log.Add("Player " + username + " <b>voted for quality</b> of process version " + PVID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("VoteQualityVersionAck", RPCMode.Others, "Failure", username, PID, PVID, vote);
 		}
 	}
 	
 	[RPC]
-	public void MarkAsDuplicated(int PID, int PVID, int originalPID, int originalPVID, string username) {
-		try {
+	public void MarkAsDuplicated(int PID, int PVID, int originalPID, int originalPVID, string username)
+	{
+		try
+		{
 			Player voter = State.ActivePlayers.Find(player => player.Username.Equals(username));
 			Process process = State.GetTargetProcess(PID, PVID);
 			
@@ -1473,72 +1657,82 @@ public class Server : MonoBehaviour
 			networkView.RPC("MarkAsDuplicatedAck", RPCMode.Others, "Success", PID, PVID, originalPID, originalPVID, username);
 			Console.Log.Add("Player " + username + " <b>marked as duplicated</b> process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("MarkAsDuplicatedAck", RPCMode.Others, "Failure", PID, PVID, originalPID, originalPVID, username);
 		}
 	}
 	
 	[RPC]
-	public void VoteDuplicationProcess(int PID, int PVID, bool vote, string username) {
-		try {
+	public void VoteDuplicationProcess(int PID, int PVID, bool vote, string username)
+	{
+		try
+		{
 			Player voter = State.ActivePlayers.Find(player => player.Username.Equals(username));
 			Process process = State.GetTargetProcess(PID, PVID);
 			
 			process.VoteForDuplication(vote, username);
-			if (voter != null) {
-				if (PVID == -1)
-					voter.NumVotesProcesses++;
-				else
-					voter.NumVotesVersions++;
+			if (voter != null)
+			{
+				if (PVID == -1) voter.NumVotesProcesses++;
+				else voter.NumVotesVersions++;
 			}
 			
-			if (PVID == -1)
-				voter.NumVotesProcesses++;
-			else
-				voter.NumVotesVersions++;
+			if (PVID == -1) voter.NumVotesProcesses++;
+			else voter.NumVotesVersions++;
 			
 			networkView.RPC("VoteDuplicationProcessAck", RPCMode.Others, "Success", PID, PVID, vote, username);
 			Console.Log.Add("Player " + username + " <b>voted for duplication</b> process " + PID + ".");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("VoteDuplicationProcessAck", RPCMode.Others, "Failure", PID, PVID, vote, username);
 		}
 	}
 	
 	[RPC]
-	public void PublishProcess(string username, int PID, int PVID) {
-		try {
+	public void PublishProcess(string username, int PID, int PVID)
+	{
+		try
+		{
 			Process process = GetTargetProcess(PID, PVID);
 			int score = CalculateProcessScore(PID, PVID);
 			Player player = GetPlayer(username, State.ActivePlayers);
 			
-			//  First Process Published ACHIEVEMENT
+			#region  First Process Published ACHIEVEMENT
 			if (player != null && player.NumPubProcesses == 0 &&
-				!player.AlreadyContainsAchievement(Achievement.Categ.ProcessPublished)) {
+				!player.AlreadyContainsAchievement(Achievement.Categ.ProcessPublished))
+			{
 				NewAchievement(username, Achievement.Categ.ProcessPublished, false);
 				player.NewAchievement(Achievement.Categ.ProcessPublished, false, false);
 			}
-			// Corrected Own Process ACHIEVEMENT
+			#endregion
+			#region Corrected Own Process ACHIEVEMENT
 			if (player != null && State.PlayerCorrectedOwnProcess(username) &&
-				!player.AlreadyContainsAchievement(Achievement.Categ.CorrectedOwnProcess)) {
+				!player.AlreadyContainsAchievement(Achievement.Categ.CorrectedOwnProcess))
+			{
 				NewAchievement(username, Achievement.Categ.CorrectedOwnProcess, false);
 				player.NewAchievement(Achievement.Categ.CorrectedOwnProcess, false, false);
 			}
-			// Corrected Processes All Players ACHIEVEMENT
+			#endregion
+			#region Corrected Processes All Players ACHIEVEMENT
 			if (PVID != -1 && player != null && !player.AlreadyContainsAchievement(Achievement.Categ.ProposedVersion) &&
-				State.PlayerModifProcessAllPlayers(username)) {
-				/*!username.Equals(process.Author)*/
+				State.PlayerModifProcessAllPlayers(username))
+			{
 				player.NewAchievement(Achievement.Categ.ProposedVersion, false, false);
 				NewAchievement(username, Achievement.Categ.ProposedVersion, false);
 			}
-			// First Process Published MEDAL
-			if (State.GetNumPublishedProcesses() == 0) {
+			#endregion
+			#region First Process Published MEDAL
+			if (State.GetNumPublishedProcesses() == 0)
+			{
 				NewMedal(username, Medal.Categ.FirstProcessPublished, false);
 				player.NewMedal(Medal.Categ.FirstProcessPublished, false, false);
 			}
-			
+			#endregion
+
 			float poissonFactor = (float)(process.score *
 				State.CalculateModPoissonValue(process.CalculateNumberActivities(),
 					int.Parse(PaintServerPanels.ExpectedNumActivities)));
@@ -1548,14 +1742,16 @@ public class Server : MonoBehaviour
 			process.bonusMalus[0] = poissonFactor;
 			player.Score += score;
 			
-			if (PVID == -1) {
+			if (PVID == -1)
+			{
 				networkView.RPC("UpdateMode", RPCMode.Others, true);
 				SendProcess(username, process, false);
 				networkView.RPC("UpdateMode", RPCMode.Others, false);
 				player.NumPubProcesses++;
 				player.NumDraftProcesses--;
 			}
-			else {
+			else
+			{
 				player.NumPubVersions++;
 				player.NumDraftVersions--;
 			}
@@ -1563,15 +1759,20 @@ public class Server : MonoBehaviour
 			networkView.RPC("PublishProcessAck", RPCMode.Others, "Success", username, PID, PVID, score);
 			Console.Log.Add("Player " + username + " published process " + PID + ", scoring " + score + " points.");
 		}
-		catch (InvalidOperationException ioe) {
+		catch (InvalidOperationException ioe)
+		{
 			Debug.Log(ioe.StackTrace);
 			networkView.RPC("PublishProcessAck", RPCMode.Others, "Failure", username, PID, PVID, -1);
 		}
 	}
 	
 	[RPC]
-	public void SignalGameTimeout(string username) {
+	public void SignalGameTimeout(string username)
+	{
 		Player player = GetPlayer(username);
 		player.GameOver = true;
 	}
+	#endregion
+
+	#endregion
 }

@@ -5,7 +5,6 @@ using System.Xml.Serialization;
 public class Flow : Primitive
 {	
 	public enum Categ { Sequence, Information };
-	
 	[XmlAttribute("Category")]
 	public Categ categ;
 	[XmlAttribute("SourceID")]
@@ -14,11 +13,9 @@ public class Flow : Primitive
 	public int TargetID;
 	[XmlAttribute("Condition")]
 	public string Condition;
-	
-	// SERVER
-	
+
+	#region SERVER
 	public Flow() {}
-	
 	public Flow(Categ c, int sourceID, int targetID, string condition)
 	{
 		categ = c;
@@ -26,9 +23,9 @@ public class Flow : Primitive
 		TargetID = targetID;
 		Condition = condition;
 	}
-	
-	// CLIENT
-	
+	#endregion
+
+	#region CLIENT
 	public Flow(int PrID, Categ c, int sourceID, int targetID, string condition) : base(PrID, 0, 0)
 	{
 		categ = c;
@@ -36,5 +33,5 @@ public class Flow : Primitive
 		TargetID = targetID;
 		Condition = condition;
 	}
-	
+	#endregion
 }

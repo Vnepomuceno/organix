@@ -135,7 +135,7 @@ public class PainterServer : MonoBehaviour
 							new Rect(0, 0, (Server.CurrentProcess.Versions.Count+2)*(versionWidth+20), versionHeight-10),
 							new GUIStyle(GUI.skin.horizontalScrollbar), GUIStyle.none);
 			
-			// Original Process
+			#region Original Process
 			string processStyle = (Server.CurrentScreen == Server.GameScreen.ViewProcess) ? "VersionItemSel" : "VersionItem";
 			if (GUI.Button(versionRect, "", processStyle))
 			{
@@ -146,8 +146,9 @@ public class PainterServer : MonoBehaviour
 				GUI.Label(new Rect(versionRect.x+15, versionRect.y+35, 100, 100), "<size=20>Final Consensus</size>", "VersionPanelItemText");
 			
 			versionRect.x += versionWidth+20;
-			
-			// Process Versions
+			#endregion
+
+			#region Process Versions
 			foreach (ProcessVersion version in Server.CurrentProcess.Versions)
 			{
 				string versionStyle = (Server.CurrentVersion != null && Server.CurrentVersion.PVID == version.PVID
@@ -163,6 +164,7 @@ public class PainterServer : MonoBehaviour
 					GUI.Label(new Rect(versionRect.x+15, versionRect.y+35, 100, 100), "<size=20>Final Consensus</size>", "VersionPanelItemText");
 				versionRect.x += versionWidth+20;
 			}
+			#endregion
 			
 			GUI.EndScrollView();
 			GUI.EndGroup();
@@ -251,7 +253,6 @@ public class PainterServer : MonoBehaviour
 		GUI.Label(new Rect(15, SCREEN_HEIGHT-95, 150, 20), "<size=15>IP: <b>" + Network.player.ipAddress + "</b></size>", "ConsoleText");
 		GUI.Label(new Rect(15, SCREEN_HEIGHT-75, 150, 20), "<size=15>Port: <b>" + Network.player.port + "</b></size>", "ConsoleText");
 
-		// Bottom Menu
 		if (GUI.Button(new Rect(4, SCREEN_HEIGHT-48, 72, 52), "", "DisconnectButton"))
 		{
 			Server.Disconnect();
@@ -331,7 +332,7 @@ public class PainterServer : MonoBehaviour
 		int laneHeight = 180;
 		Rect nextPoolRect = new Rect(0, 0, Server.SCREEN_WIDTH-60, laneHeight);
 		
-		// DRAWS LANES
+		#region DRAWS LANES
 		Matrix4x4 backupMatrix = GUI.matrix;
 		if (process != null)
 		{
@@ -377,7 +378,7 @@ public class PainterServer : MonoBehaviour
 
 			GUI.matrix = backupMatrix;
 			
-			// DRAWS EDGE FLOWS
+			#region DRAWS EDGE FLOWS
 			foreach(Flow flow in process.Connections)
 			{
 				Primitive source = Server.State.GetPrimitive(process.PID, -1, flow.SourceID);
@@ -394,8 +395,9 @@ public class PainterServer : MonoBehaviour
 				else
 					DrawLine(flow, Color.black, 3, false, false, -1, -1);
 			}
+			#endregion
 			
-			// DRAWS LANGUAGE PRIMITIVES
+			#region DRAWS LANGUAGE PRIMITIVES
 			foreach (Lane lane in process.Pool)
 			{
 				foreach (Primitive prim in lane.Elements)
@@ -408,10 +410,10 @@ public class PainterServer : MonoBehaviour
 					else
 						primitiveRect = new Rect(prim.x-20, prim.x-20, 40, 40);
 					
-					// EVENT
+					#region EVENT
 					if (prim is Event)
 					{
-						// Start Event
+						#region Start Event
 						if (((Event)prim).categ.Equals(Event.Categ.Start))
 						{
 							string startStyle;
@@ -423,7 +425,8 @@ public class PainterServer : MonoBehaviour
 							if (GUI.Button(primitiveRect, "", startStyle))
 								Server.CurrentPrimitive = prim;
 						}
-						// End Event
+						#endregion
+						#region End Event
 						else if (((Event)prim).categ.Equals(Event.Categ.End))
 						{
 							string endStyle;
@@ -435,7 +438,8 @@ public class PainterServer : MonoBehaviour
 							if (GUI.Button(primitiveRect, "", endStyle))
 								Server.CurrentPrimitive = prim;
 						}
-						// Merge Event
+						#endregion
+						#region Merge Event
 						else if (((Event)prim).categ.Equals(Event.Categ.Merge))
 						{
 							string mergeStyle;
@@ -447,9 +451,11 @@ public class PainterServer : MonoBehaviour
 							if (GUI.Button(primitiveRect, "", mergeStyle))
 								Server.CurrentPrimitive = prim;
 						}
+						#endregion
 					}
-					// ACTIVITY
-					// Composed Activity
+					#endregion
+					#region ACTIVITY
+					#region Composed Activity
 					else if (prim is ComposedActivity)
 					{
 						ComposedActivity a = prim as ComposedActivity;
@@ -459,7 +465,7 @@ public class PainterServer : MonoBehaviour
 						else
 							compActStyle = "ComposedActivity";
 						
-						// Open composed activity
+						#region Open composed activity
 						if (Input.GetKeyUp(KeyCode.Space) &&
 							Server.CurrentPrimitive != null &&
 							prim.PrID == Server.CurrentPrimitive.PrID)
@@ -470,8 +476,10 @@ public class PainterServer : MonoBehaviour
 
 						if (GUI.Button(primitiveRect, a.Name, compActStyle))
 							Server.CurrentPrimitive = a;
+						#endregion
 					}
-					// Ad-Hoc Activity
+					#endregion
+					#region Ad-Hoc Activity
 					else if (prim is AdHocActivity)
 					{
 						AdHocActivity a = prim as AdHocActivity;
@@ -481,7 +489,7 @@ public class PainterServer : MonoBehaviour
 						else
 							adHocActStyle = "AdHocActivity";
 						
-						// Open ad-hoc activity
+						#region Open ad-hoc activity
 						if (Input.GetKeyUp(KeyCode.Space) &&
 							Server.CurrentPrimitive != null &&
 							prim.PrID == Server.CurrentPrimitive.PrID)
@@ -489,12 +497,14 @@ public class PainterServer : MonoBehaviour
 							Server.CurrentPrimitive = prim;
 							Server.CurrentScreen = Server.GameScreen.ViewAdHoc;
 						}
-						
-						// Select ad-hoc activity
+						#endregion
+						#region Select ad-hoc activity
 						else if (GUI.Button(primitiveRect, a.Name, adHocActStyle))
 							Server.CurrentPrimitive = a;
+						#endregion
 					}
-					// Work Activity
+					#endregion
+					#region Work Activity
 					else if (prim is Activity)
 					{
 						Activity a = prim as Activity;
@@ -504,13 +514,18 @@ public class PainterServer : MonoBehaviour
 						else
 							actStyle = "Activity";
 						
-						// Select activity
+						#region Select activity
 						if (GUI.Button(primitiveRect, a.Name, actStyle))
 							Server.CurrentPrimitive = a;
+						#endregion
 					}
+					#endregion
 				}
+				#endregion
 			}
+			#endregion
 		}
+		#endregion
 	}
 	
 	public void DrawAdHocSubActivities(AdHocActivity activity)
@@ -547,16 +562,17 @@ public class PainterServer : MonoBehaviour
 			-1 : Server.CurrentVersion.PVID;
 		
 		GUI.BeginGroup(new Rect(15, 80, Server.SCREEN_WIDTH, Server.SCREEN_HEIGHT-100));
-		// DRAWS LANE
+
+		#region DRAWS LANE
 		Matrix4x4 backupMatrix = GUI.matrix;
 		Rect poolRect = new Rect(0, 15, Server.SCREEN_WIDTH-40, 300);
 		GUI.Box(poolRect, "", "Lane");
-		
 		GUIUtility.RotateAroundPivot(270f, new Vector2(0, 300+15));
 		GUI.Button(new Rect(0, 300+15, 300, 30), "Activity " + activity.PrID + ": " + activity.Name, "PoolLabel");			
 		GUI.matrix = backupMatrix;
-		
-		// DRAWS EDGE FLOWS
+		#endregion
+
+		#region DRAWS EDGE FLOWS
 		foreach (Flow flow in activity.Connections)
 		{
 			int LaneID = Server.State.GetLaneID(Server.CurrentProcess.PID, PVID, activity.PrID);
@@ -578,8 +594,9 @@ public class PainterServer : MonoBehaviour
 			else
 				DrawLine(flow, Color.black, 3, false, false, activity.PrID, activity.PrID);
 		}
-		
-		// DRAWS LANGUAGE PRIMITIVES
+		#endregion
+
+		#region DRAWS LANGUAGE PRIMITIVES
 		foreach (Primitive prim in activity.lane.Elements)
 		{
 			Rect primitiveRect = new Rect(prim.x-75, prim.y-25, 150, 50);
@@ -629,6 +646,8 @@ public class PainterServer : MonoBehaviour
 					Server.CurrentSubPrimitive = e;
 			}
 		}
+		#endregion
+
 		GUI.EndGroup();
 	}
 	
@@ -643,7 +662,7 @@ public class PainterServer : MonoBehaviour
 						new Rect(0, 0, Server.SCREEN_WIDTH - 180 - Server.SCREEN_WIDTH*0.3f-50, (Server.State.LocalProcesses.Count/3+1)*120),
 						GUIStyle.none, new GUIStyle(GUI.skin.verticalScrollbar));
 		
-		// Unpublished Processes
+		#region Unpublished Processes
 		GUI.Label(new Rect(5, 0, 300, 40), "<size=23>Unpublished Processes</size>");
 		
 		foreach (Process unpub in Server.State.LocalProcesses)
@@ -670,8 +689,9 @@ public class PainterServer : MonoBehaviour
 		
 		nextProcButton.x = 0;
 		nextProcButton.y += 115;
-		
-		// Published Processes
+		#endregion
+
+		#region Published Processes
 		GUI.Label(new Rect(5, nextProcButton.y, 300, 40), "<size=23>Published Processes</size>");
 		nextProcButton.y += 35;
 		
@@ -702,8 +722,9 @@ public class PainterServer : MonoBehaviour
 			GUI.Label(new Rect(5, nextProcButton.y+30, 580, 40), "<size=15>No processes to display.</size>", "Center");
 
 		nextProcButton.y += 115;
-		
-		// Top Players
+		#endregion
+
+		#region Top Players
 		GUI.Label(new Rect(5, nextProcButton.y, 300, 40), "<size=23>Top Players</size>");
 		nextProcButton.y += 45;
 		nextProcButton.x = 0;
@@ -732,6 +753,8 @@ public class PainterServer : MonoBehaviour
 			nextProcButton.y += 30;
 			i++;
 		}
+
+		#endregion
 		
 		GUI.EndScrollView();
 		GUI.EndGroup();
@@ -742,7 +765,7 @@ public class PainterServer : MonoBehaviour
 		for (int i = 0; i < Screen.width; i += 245)
 			GUI.DrawTexture(new Rect(i, 0, 245, 43), toolbarBackground);
 		
-		// Back Button
+		#region Back Button
 		if (GUI.Button(new Rect(0, 0, 43, 37), "", "BackButton"))
 		{
 			if (Server.CurrentScreen == Server.GameScreen.ViewAdHoc ||
@@ -751,8 +774,9 @@ public class PainterServer : MonoBehaviour
 			else
 				Server.CurrentScreen = Server.GameScreen.Home;
 		}
-		
-		// Duplication Voting Buttons
+		#endregion
+
+		#region Duplication Voting Buttons
 		if (Server.CurrentProcess != null && Server.CurrentProcess.markedDuplication &&
 			(Server.CurrentScreen == Server.GameScreen.ViewProcess ||
 			Server.CurrentScreen == Server.GameScreen.ViewComposed ||
@@ -773,8 +797,9 @@ public class PainterServer : MonoBehaviour
 			GUI.Label(new Rect(Screen.width-173, 5, 30, 20), "" + Server.CurrentVersion.posDuplicationVotes, "VoteText");
 			GUI.Label(new Rect(Screen.width-133, 5, 30, 20), "" + Server.CurrentVersion.negDuplicationVotes, "VoteText");
 		}
+		#endregion
 
-		// Quality Voting Buttons
+		#region Quality Voting Buttons
 		if (Server.CurrentProcess != null && 
 			(Server.CurrentScreen == Server.GameScreen.ViewProcess ||
 			Server.CurrentScreen == Server.GameScreen.ViewComposed ||
@@ -788,6 +813,7 @@ public class PainterServer : MonoBehaviour
 			GUI.Button(new Rect(Screen.width-85, 0, 43, 37), "" + Server.CurrentVersion.posVotes, "LikeButtonVoted");
 			GUI.Button(new Rect(Screen.width-43, 0, 43, 37), "" + Server.CurrentVersion.negVotes, "DislikeButtonVoted");
 		}
+		#endregion
 	}
 	
 	public static void DrawOverlay()

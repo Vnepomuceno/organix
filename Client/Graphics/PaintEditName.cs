@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class PaintEditName : MonoBehaviour
 {
-	
 	private GUISkin MySkin;
 	private int topLayerNumber = 9;
 	public static bool changeName;
@@ -21,7 +20,7 @@ public class PaintEditName : MonoBehaviour
 		GUI.depth = topLayerNumber;
 		GUI.skin = MySkin;
 		
-		// Change activity name
+		#region Change activity name
 		if (changeName)
 		{
 			Activity activity = Painter.Manager.InspectorPrimitive as Activity;
@@ -35,11 +34,11 @@ public class PaintEditName : MonoBehaviour
 			}
 			Painter.activityName = GUI.TextField(new Rect(primitiveRect.x+15+15, primitiveRect.y+80+11-Painter.scrollPos.y, 120, 25), Painter.activityName);
 		}
+		#endregion
 		
-		// Change sub activity name
+		#region Change sub activity name
 		else if (changeSubName)
 		{
-			//Activity subActivity = Painter.Manager.InspectorSubPrimitive as Activity;
 			if (UnityEngine.Event.current.Equals(UnityEngine.Event.KeyboardEvent("return")))
 			{
 				LanguageConstructor.EditSubPrimitive(Painter.Manager.CurrentProcess.PID,
@@ -51,8 +50,9 @@ public class PaintEditName : MonoBehaviour
 			}
 			Painter.subPrimitiveName = GUI.TextField(new Rect(primitiveRect.x+15+15, primitiveRect.y+80+11, 120, 25), Painter.subPrimitiveName);
 		}
+		#endregion
 		
-		// Change flow condition
+		#region Change flow condition
 		else if (changeCondition)
 		{
 			if (Painter.Manager.CurrentScreen == GameManager.GameScreen.ProcessCreation ||
@@ -84,5 +84,6 @@ public class PaintEditName : MonoBehaviour
 				}
 			}
 		}
+		#endregion
 	}
 }

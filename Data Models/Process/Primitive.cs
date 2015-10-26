@@ -8,7 +8,6 @@ using System.Xml.Serialization;
 public class Primitive
 {	
 	public static int IDCounter = 0;
-	
 	[XmlAttribute("PrID")]
 	public int PrID;
 	[XmlAttribute("X")]

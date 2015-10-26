@@ -8,8 +8,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 [XmlRoot("GameState")]
 [Serializable]
 public class ClientState
-{
-	
+{	
 	[XmlArray("Processes"), XmlArrayItem("Process")]
 	public List<Process> LocalProcesses;
 	public Event ev;

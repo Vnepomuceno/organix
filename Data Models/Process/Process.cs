@@ -188,7 +188,7 @@ public class Process
 		foreach (Lane lane in Pool)
 			AllPrimitives.AddRange(lane.Elements);
 		
-		// Erase previous calculated cache
+		#region Erase previous calculated cache
 		foreach (Primitive prim in AllPrimitives)
 		{
 			prim.Sources.Clear();
@@ -201,6 +201,7 @@ public class Process
 				}
 			}
 		}
+		#endregion
 		
 		FillFlowCache();
 		

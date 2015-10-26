@@ -148,14 +148,14 @@ public class PaintPanels : MonoBehaviour
 						new Rect(0, 0, (Painter.Manager.CurrentProcess.Versions.Count+2)*(versionWidth+20), versionHeight-10),
 						new GUIStyle(GUI.skin.horizontalScrollbar), GUIStyle.none);
 		
-		// Original Process
+		#region Original Process
 		string processStyle = (Painter.Manager.CurrentScreen == GameManager.GameScreen.ViewProcess) ? "VersionItemSel" : "VersionItem";
 		if (GUI.Button(versionRect, "", processStyle))
 			Painter.Manager.CurrentScreen = GameManager.GameScreen.ViewProcess;
 		GUI.Label(new Rect(versionRect.x+15, versionRect.y-30, 100, 100), "Process " + Painter.Manager.CurrentProcess.PID, "VersionPanelItemText");
 		versionRect.x += versionWidth+20;
-		
-		// Process Versions
+		#endregion
+		#region Process Versions
 		foreach (ProcessVersion version in Painter.Manager.CurrentProcess.Versions)
 		{
 			if (version.published || version.Author == Painter.Manager.CurrentPlayer.Username)
@@ -172,11 +172,12 @@ public class PaintPanels : MonoBehaviour
 				versionRect.x += versionWidth+20;
 			}
 		}
-		
-		// Add New Version
+		#endregion
+		#region Add New Version
 		if (GUI.Button(versionRect, "", "AddVersion"))
 			Mechanics.NewProcessVersion(Painter.Manager.CurrentProcess.PID, Painter.Manager.CurrentPlayer.Username);
-		
+		#endregion
+
 		GUI.EndScrollView();
 		GUI.EndGroup();
 	}
@@ -220,45 +221,37 @@ public class PaintPanels : MonoBehaviour
 		
 		GUILayout.BeginArea(new Rect(Painter.SCREEN_WIDTH/2-width/2, Painter.SCREEN_HEIGHT/2-height/2 + 10, width, height), "", "box");
 		
-		// Window Title
+		#region Window Title
 		GUI.Label(new Rect(0, -45, width, 200), "<size=60>FINAL SCORES</size>", "GameTitle");
-		
-		// Processes
+		#endregion
+
+		#region Processes
 		GUI.Label(new Rect(playerRect.x-5, playerRect.y, 300, 50), "<size=22>Process Authorship</size>", "BoldText");
-		
 		GUI.Label(new Rect(playerRect.x-5, playerRect.y+40, 190, 100), "<size=80>+" + (int)(Painter.Manager.CurrentPlayer.Score + 
 			Painter.Manager.CurrentPlayer.bonusMalus[0]) + "</size>", "ScoreNumber");
 		GUI.Label(new Rect(playerRect.x+15, playerRect.y+120, 190, 20), "<size=25>points</size>", "ScoreNumber");
+		#endregion
 
-		
-		// Process Versions
+		#region Process Versions
 		GUI.Label(new Rect(playerRect.x + 230, playerRect.y, 350, 50), "<size=22>Process Voting</size>", "BoldText");
-		
 		GUI.Label(new Rect(playerRect.x+220, playerRect.y+40, 170, 100), "<size=80>" + 
 			(Painter.Manager.CurrentPlayer.bonusMalus[1] < 0 ? "" : "+") +
 			(int)Painter.Manager.CurrentPlayer.bonusMalus[1] + "</size>", "ScoreNumber");
 		GUI.Label(new Rect(playerRect.x+240, playerRect.y+120, 170, 20), "<size=25>points</size>", "ScoreNumber");
-		
 		GUI.Label(new Rect(playerRect.x + 415, playerRect.y, 350, 50), "<size=22>Duplication Detection</size>", "BoldText");
-		
 		GUI.Label(new Rect(playerRect.x+420, playerRect.y+40, 210, 100), "<size=80>" +
 			(Painter.Manager.CurrentPlayer.bonusMalus[2] < 0 ? "" : "+") +
 			(int)Painter.Manager.CurrentPlayer.bonusMalus[2] + "</size>", "ScoreNumber");
 		GUI.Label(new Rect(playerRect.x+440, playerRect.y+120, 210, 20), "<size=25>points</size>", "ScoreNumber");
-		
-		
 		GUI.Label(new Rect(playerRect.x + 115, playerRect.y+190, 350, 50), "<size=28>Achievements</size>", "BoldText");
-		
 		GUI.Label(new Rect(playerRect.x+90, playerRect.y+230, 185, 100), "<size=80>+" + Painter.Manager.CurrentPlayer.GetAchievementsScore() + "</size>", "ScoreNumber");
 		GUI.Label(new Rect(playerRect.x+110, playerRect.y+310, 185, 20), "<size=25>points</size>", "ScoreNumber");
-		
 		GUI.Label(new Rect(playerRect.x + 385, playerRect.y+190, 350, 50), "<size=28>Medals</size>", "BoldText");
-		
 		GUI.Label(new Rect(playerRect.x+340, playerRect.y+230, 180, 100), "<size=80>+" + Painter.Manager.CurrentPlayer.GetMedalsScore() + "</size>", "ScoreNumber");
 		GUI.Label(new Rect(playerRect.x+360, playerRect.y+310, 180, 20), "<size=25>points</size>", "ScoreNumber");
+		#endregion
 
-		
-		// Total Score
+		#region Total Score
 		GUI.Button(new Rect(4, height-118, 692, 114), "", "ScoreBackground");
 		GUI.Label(new Rect(0, playerRect.y+380, width, 50), "<size=30>Total Score</size>", "BoldWhiteText");
 		GUI.Label(new Rect(0, playerRect.y+420, width, 50), "<size=62>+" +
@@ -268,7 +261,8 @@ public class PaintPanels : MonoBehaviour
 			Painter.Manager.CurrentPlayer.bonusMalus[2] +
 			Painter.Manager.CurrentPlayer.GetAchievementsScore() +
 			Painter.Manager.CurrentPlayer.GetMedalsScore()) + " points</size>", "ScoreNumberWhite");
-		
+		#endregion
+
 		GUILayout.EndArea();
 	}
 	
@@ -335,13 +329,14 @@ public class PaintPanels : MonoBehaviour
 		
 		GUI.DrawTexture(new Rect(0, 0, width, height), Aggregator);
 		
-		// Player Info
+		#region Player Info
 		GUI.Label(new Rect(35, 15, width, 25), "<size=13>Time left: " + Mathf.CeilToInt(Painter.Manager.RemainingSeconds) / 60 +
 			"min and " + Mathf.CeilToInt(Painter.Manager.RemainingSeconds) % 60 + "sec.</size>", "LeftWhiteText");
 		GUI.Label(new Rect(35, 35, width, 25), "<size=13>Target process: " + Painter.Manager.ToElicitProcessName + ".</size>", "LeftWhiteText");
 		GUI.Label(new Rect(35, 85, width, 25), "<size=18>SCORE: " + Painter.Manager.CurrentPlayer.Score + " points</size>", "LeftBoldWhiteText");
-		
-		// Statistics
+		#endregion
+
+		#region Statistics
 		GUI.Label(new Rect(35, 132, width, 25), "<size=13>- " + (player.NumDraftProcesses + player.NumPubProcesses) +
 			((player.NumDraftProcesses + player.NumPubProcesses) == 1 ? " process and " : " processes and ") + (player.NumDraftVersions + player.NumPubVersions) +
 			((player.NumDraftVersions + player.NumPubVersions) == 1 ? " version created.</size>" : " versions created.</size>"), "LeftWhiteText");
@@ -352,8 +347,9 @@ public class PaintPanels : MonoBehaviour
 			"% of convergence rate of your placed votes.</size>", "LeftWhiteText");
 		GUI.Label(new Rect(35, 192, width, 25), "<size=13>- 0 of your processes are marked as duplicate.</size>", "LeftWhiteText");
 		GUI.Label(new Rect(35, 212, width, 25), "<size=13>- 0 processes you marked as duplicate.</size>", "LeftWhiteText");
-		
-		//Achievements
+		#endregion
+
+		#region Achievements
 		if (player.Achievements.Count == 0)
 			GUI.Label(new Rect(0, 310, width-50, 25), "<size=17>You have no achievements yet.</size>", "NormalWhiteText");
 		else
@@ -366,8 +362,9 @@ public class PaintPanels : MonoBehaviour
 				AchievRect.y += 23;
 			}
 		}
-		
-		// Medals
+		#endregion
+
+		#region Medals
 		if (player.Medals.Count == 0)
 			GUI.Label(new Rect(0, 450, width-50, 25), "<size=17>You have no medals yet.</size>", "NormalWhiteText");
 		else
@@ -380,7 +377,8 @@ public class PaintPanels : MonoBehaviour
 				medalRect.y += 23;
 			}
 		}
-		
+		#endregion
+
 		GUI.EndGroup();
 	}
 	
@@ -417,7 +415,7 @@ public class PaintPanels : MonoBehaviour
 		
 		if (process.markedDuplication)
 		{
-			// Player marked as duplicate
+			#region Player marked as duplicate
 			if (process.markAuthor.Equals(username))
 			{
 				GUI.Label(new Rect(0, 50, 404, 60),
@@ -433,7 +431,7 @@ public class PaintPanels : MonoBehaviour
 			}
 			else
 			{
-				// Player already voted
+				#region Player already voted
 				if (process.PlayerAlreadyVoted(username, "Duplication"))
 				{
 					if (process.GetPlayerVote(username, "Duplication"))
@@ -449,7 +447,8 @@ public class PaintPanels : MonoBehaviour
 					if (GUI.Button(new Rect(135, 170, 132, 50), "Okay", "GreenButton"))
 						duplicationWindow = false;
 				}
-				// Player did not vote
+				#endregion
+				#region Player did not vote
 				else
 				{
 					GUI.Label(new Rect(0, 70, 404, 30),
@@ -463,7 +462,9 @@ public class PaintPanels : MonoBehaviour
 							Painter.Manager.CurrentScreen == GameManager.GameScreen.ViewProcess ? -1 : Painter.Manager.CurrentVersion.PVID,
 							false, username);
 				}
+				#endregion
 			}
+			#endregion
 		}
 		else
 		{

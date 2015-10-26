@@ -5,7 +5,6 @@ public class Medal
 {	
 	public enum Categ { Default, FirstProcessPublished, MarkedProcessDuplicated,
 		BestQualityContent, BestVoteConvergence };
-	
 	public Categ categ { get; private set; }
 	public string Name { get; private set; }
 	public int ScorePoints { get; private set; }
