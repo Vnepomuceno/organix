@@ -14,6 +14,12 @@ Development of a serious game in the context of a MSc. Computer Science thesis b
 * Data persistency achieved with **memory cache** and **physical storage**.
 * Exportation of game data to **XML** formats.
 
+## Screenshots
+
+![Home Screen](http://i67.tinypic.com/otjitu.png)
+![Process Creation Screen](http://i63.tinypic.com/hrmpf7.png)
+![Scoring Screen](http://i68.tinypic.com/2s9so0h.png)
+![Administration Screen](http://i65.tinypic.com/bgbqbn.png)
 
 ## References
 
